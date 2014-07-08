@@ -25,10 +25,15 @@ using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.VersionControl.Client;
 using Microsoft.TeamFoundation.VersionControl.Common;
 
+using System.Text;
+
 namespace SonarTfsAnnotate
 {
     class Program
     {
+        private const int UNKNOWN = -1;
+        private const int LOCAL = 0;
+
         static int Main(string[] args)
         {
             if (args.Length != 1)
@@ -65,33 +70,23 @@ namespace SonarTfsAnnotate
                 options.Flags = DiffOptionFlags.EnablePreambleHandling;
 
                 Changeset currentChangeset = null;
-                Item current = null;
-                int[] revisions = null;
-                int[] mappings = null;
+                Item current = item;
+
+                File.Copy(path, currentPath, true);
+                int lines = File.ReadLines(currentPath, Encoding.GetEncoding(item.Encoding)).Count();
+                int[] revisions = new int[lines];
+                int[] mappings = new int[lines];
+                for (int line = 0; line < lines; line++)
+                {
+                    revisions[line] = UNKNOWN;
+                    mappings[line] = line;
+                }
 
                 var itemHistory = server.QueryHistory(path, VersionSpec.Latest, 0, RecursionType.None, null, null, null, int.MaxValue, /* populate Changeset.Changes? */ true, false, true, false); // FIXME stop at local revision
                 Mapping diff = null;
                 foreach (Changeset previousChangeset in itemHistory)
                 {
                     Console.WriteLine("Analyzing changeset " + previousChangeset.ChangesetId);
-                    if (current == null)
-                    {
-                        currentChangeset = previousChangeset;
-
-                        current = server.GetItem(item.ItemId, previousChangeset.ChangesetId);
-                        current.DownloadFile(currentPath);
-
-                        int lines = File.ReadLines(currentPath).Count();
-                        revisions = new int[lines];
-                        mappings = new int[lines];
-                        for (int line = 0; line < lines; line++)
-                        {
-                            revisions[line] = 0;
-                            mappings[line] = line;
-                        }
-
-                        continue;
-                    }
 
                     if (previousChangeset.Changes.Length != 1)
                     {
@@ -109,13 +104,15 @@ namespace SonarTfsAnnotate
                         bool complete = true;
                         for (int i = 0; i < revisions.Length; i++)
                         {
-                            if (revisions[i] == 0)
+                            if (revisions[i] == UNKNOWN)
                             {
                                 int line = mappings[i];
                                 if (!diff.ContainsKey(line))
                                 {
-                                    Console.WriteLine("  - line " + (i + 1) + " was last touched in revision " + currentChangeset.ChangesetId);
-                                    revisions[i] = currentChangeset.ChangesetId;
+                                    int changesetId = currentChangeset != null ? currentChangeset.ChangesetId : LOCAL;
+
+                                    Console.WriteLine("  - line " + (i + 1) + " was last touched in revision " + changesetId);
+                                    revisions[i] = changesetId;
                                 }
                                 else
                                 {
@@ -146,17 +143,15 @@ namespace SonarTfsAnnotate
                 {
                     for (int i = 0; i < revisions.Length; i++)
                     {
-                        if (revisions[i] == 0)
+                        if (revisions[i] == UNKNOWN)
                         {
                             int line = mappings[i];
                             if (diff.ContainsValue(line))
                             {
-                                Console.WriteLine("  - line " + (i + 1) + " was last touched in revision " + currentChangeset.ChangesetId);
-                                revisions[i] = currentChangeset.ChangesetId;
-                            }
-                            else
-                            {
-                                Console.WriteLine("  - line " + (i + 1) + " is local");
+                                int changesetId = currentChangeset != null ? currentChangeset.ChangesetId : LOCAL;
+
+                                Console.WriteLine("  - line " + (i + 1) + " was last touched in revision " + changesetId);
+                                revisions[i] = changesetId;
                             }
                         }
                     }
