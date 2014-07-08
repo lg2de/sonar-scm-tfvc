@@ -36,7 +36,7 @@ namespace SonarTfsAnnotate
                 Console.Error.WriteLine("Expected exactly one argument, the file to annotate. " + args.Length + " given.");
                 return 1;
             }
-            .
+
             String path = args[0];
             if (!File.Exists(path))
             {
