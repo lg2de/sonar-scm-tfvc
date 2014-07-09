@@ -88,8 +88,6 @@ namespace SonarTfsAnnotate
                     {
                         Changeset previousChangeset = itemHistoryProvider.Changeset();
 
-                        Console.WriteLine("Analyzing changeset " + previousChangeset.ChangesetId);
-
                         if (previousChangeset.Changes.Length != 1)
                         {
                             throw new InvalidOperationException("Expected exactly 1 change, but got " + previousChangeset.Changes.Length + " for ChangesetId " + previousChangeset.ChangesetId);
@@ -112,8 +110,6 @@ namespace SonarTfsAnnotate
                                     if (!diff.ContainsKey(line))
                                     {
                                         int changesetId = currentChangeset != null ? currentChangeset.ChangesetId : LOCAL;
-
-                                        Console.WriteLine("  - line " + (i + 1) + " was last touched in revision " + changesetId);
                                         revisions[i] = changesetId;
                                     }
                                     else
@@ -136,8 +132,6 @@ namespace SonarTfsAnnotate
                         }
                     }
 
-                    Console.WriteLine("Final conclusions...");
-
                     if (diff != null)
                     {
                         for (int i = 0; i < revisions.Length; i++)
@@ -148,18 +142,12 @@ namespace SonarTfsAnnotate
                                 if (diff.ContainsValue(line))
                                 {
                                     int changesetId = currentChangeset != null ? currentChangeset.ChangesetId : LOCAL;
-
-                                    Console.WriteLine("  - line " + (i + 1) + " was last touched in revision " + changesetId);
                                     revisions[i] = changesetId;
                                 }
                             }
                         }
                     }
                 }
-
-                Console.WriteLine("");
-                Console.WriteLine("");
-                Console.WriteLine("");
 
                 for (int i = 0; i < lines; i++)
                 {
