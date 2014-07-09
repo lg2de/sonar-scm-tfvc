@@ -61,9 +61,6 @@ namespace SonarTfsAnnotate
             {
                 VersionControlServer server = collection.GetService<VersionControlServer>();
 
-                String currentPath = @"c:\Users\Vagrant\Desktop\tfs-out\A.txt";
-                String previousPath = @"c:\Users\Vagrant\Desktop\tfs-out\B.txt";
-
                 Item item = server.GetItem(path); // will throw if not found
 
                 var options = new DiffOptions();
@@ -71,9 +68,10 @@ namespace SonarTfsAnnotate
 
                 Changeset currentChangeset = null;
                 Item current = item;
+                String currentPath = path;
 
-                File.Copy(path, currentPath, true);
-                int lines = File.ReadLines(currentPath, Encoding.GetEncoding(item.Encoding)).Count();
+                string[] data = File.ReadAllLines(currentPath, Encoding.GetEncoding(current.Encoding));
+                int lines = data.Length;
                 int[] revisions = new int[lines];
                 int[] mappings = new int[lines];
                 for (int line = 0; line < lines; line++)
@@ -83,83 +81,93 @@ namespace SonarTfsAnnotate
                 }
 
                 var itemHistory = server.QueryHistory(path, VersionSpec.Latest, 0, RecursionType.None, null, null, null, int.MaxValue, /* populate Changeset.Changes? */ true, false, true, false); // FIXME stop at local revision
-                Mapping diff = null;
-                foreach (Changeset previousChangeset in itemHistory)
+                using (var itemHistoryProvider = new ItemHistoryProvider(server, item.ItemId, (IEnumerable<Changeset>)itemHistory))
                 {
-                    Console.WriteLine("Analyzing changeset " + previousChangeset.ChangesetId);
-
-                    if (previousChangeset.Changes.Length != 1)
+                    Mapping diff = null;
+                    while (itemHistoryProvider.Next())
                     {
-                        throw new InvalidOperationException("Expected exactly 1 change, but got " + previousChangeset.Changes.Length + " for ChangesetId " + previousChangeset.ChangesetId);
+                        Changeset previousChangeset = itemHistoryProvider.Changeset();
+
+                        Console.WriteLine("Analyzing changeset " + previousChangeset.ChangesetId);
+
+                        if (previousChangeset.Changes.Length != 1)
+                        {
+                            throw new InvalidOperationException("Expected exactly 1 change, but got " + previousChangeset.Changes.Length + " for ChangesetId " + previousChangeset.ChangesetId);
+                        }
+
+                        if ((previousChangeset.Changes[0].ChangeType & ChangeType.Edit) != 0)
+                        {
+                            string previousPath = itemHistoryProvider.Filename();
+                            Item previous = previousChangeset.Changes[0].Item;
+
+                            // File was edited
+                            diff = new Mapping(Difference.DiffFiles(currentPath, current.Encoding, previousPath, previous.Encoding, options));
+
+                            bool complete = true;
+                            for (int i = 0; i < revisions.Length; i++)
+                            {
+                                if (revisions[i] == UNKNOWN)
+                                {
+                                    int line = mappings[i];
+                                    if (!diff.ContainsKey(line))
+                                    {
+                                        int changesetId = currentChangeset != null ? currentChangeset.ChangesetId : LOCAL;
+
+                                        Console.WriteLine("  - line " + (i + 1) + " was last touched in revision " + changesetId);
+                                        revisions[i] = changesetId;
+                                    }
+                                    else
+                                    {
+                                        mappings[i] = diff.NewLine(line);
+                                        complete = false;
+                                    }
+                                }
+                            }
+
+                            // Swap current and previous paths
+                            currentChangeset = previousChangeset;
+                            current = previous;
+                            currentPath = previousPath;
+
+                            if (complete)
+                            {
+                                break;
+                            }
+                        }
                     }
 
-                    if ((previousChangeset.Changes[0].ChangeType & ChangeType.Edit) != 0)
+                    Console.WriteLine("Final conclusions...");
+
+                    if (diff != null)
                     {
-                        // File was edited
-                        Item previous = server.GetItem(item.ItemId, previousChangeset.ChangesetId);
-                        previous.DownloadFile(previousPath);
-
-                        diff = new Mapping(Difference.DiffFiles(currentPath, current.Encoding, previousPath, previous.Encoding, options));
-
-                        bool complete = true;
                         for (int i = 0; i < revisions.Length; i++)
                         {
                             if (revisions[i] == UNKNOWN)
                             {
                                 int line = mappings[i];
-                                if (!diff.ContainsKey(line))
+                                if (diff.ContainsValue(line))
                                 {
                                     int changesetId = currentChangeset != null ? currentChangeset.ChangesetId : LOCAL;
 
                                     Console.WriteLine("  - line " + (i + 1) + " was last touched in revision " + changesetId);
                                     revisions[i] = changesetId;
                                 }
-                                else
-                                {
-                                    mappings[i] = diff.NewLine(line);
-                                    complete = false;
-                                }
                             }
-                        }
-
-                        // Swap current and previous paths
-                        String tmp = previousPath;
-                        previousPath = currentPath;
-                        currentPath = tmp;
-
-                        currentChangeset = previousChangeset;
-                        current = previous;
-
-                        if (complete)
-                        {
-                            break;
                         }
                     }
                 }
 
-                Console.WriteLine("Final conclusions...");
+                Console.WriteLine("");
+                Console.WriteLine("");
+                Console.WriteLine("");
 
-                if (diff != null)
+                for (int i = 0; i < lines; i++)
                 {
-                    for (int i = 0; i < revisions.Length; i++)
-                    {
-                        if (revisions[i] == UNKNOWN)
-                        {
-                            int line = mappings[i];
-                            if (diff.ContainsValue(line))
-                            {
-                                int changesetId = currentChangeset != null ? currentChangeset.ChangesetId : LOCAL;
-
-                                Console.WriteLine("  - line " + (i + 1) + " was last touched in revision " + changesetId);
-                                revisions[i] = changesetId;
-                            }
-                        }
-                    }
+                    Console.Write("{0,10}", revisions[i]);
+                    Console.Write(' ');
+                    Console.WriteLine(data[i]);
                 }
             }
-
-            Console.WriteLine("Press a key to continue...");
-            Console.ReadLine();
 
             return 0;
         }
