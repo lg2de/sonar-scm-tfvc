@@ -80,55 +80,47 @@ namespace SonarTfsAnnotate
                     mappings[line] = line;
                 }
 
-                var itemHistory = server.QueryHistory(path, VersionSpec.Latest, 0, RecursionType.None, null, null, null, int.MaxValue, /* populate Changeset.Changes? */ true, false, true, false); // FIXME stop at local revision
-                using (var itemHistoryProvider = new ItemHistoryProvider(server, item.ItemId, (IEnumerable<Changeset>)itemHistory))
+                var history = server.QueryHistory(path, VersionSpec.Latest, 0, RecursionType.None, null, null, null, int.MaxValue, true, false, true, false);
+                using (var historyProvider = new HistoryProvider(server, item.ItemId, (IEnumerable<Changeset>)history))
                 {
                     Mapping diff = null;
-                    while (itemHistoryProvider.Next())
+                    while (historyProvider.Next())
                     {
-                        Changeset previousChangeset = itemHistoryProvider.Changeset();
+                        Changeset previousChangeset = historyProvider.Changeset();
 
-                        if (previousChangeset.Changes.Length != 1)
+                        string previousPath = historyProvider.Filename();
+                        Item previous = previousChangeset.Changes[0].Item;
+
+                        // File was edited
+                        diff = new Mapping(Difference.DiffFiles(currentPath, current.Encoding, previousPath, previous.Encoding, options));
+
+                        bool complete = true;
+                        for (int i = 0; i < revisions.Length; i++)
                         {
-                            throw new InvalidOperationException("Expected exactly 1 change, but got " + previousChangeset.Changes.Length + " for ChangesetId " + previousChangeset.ChangesetId);
-                        }
-
-                        if ((previousChangeset.Changes[0].ChangeType & ChangeType.Edit) != 0)
-                        {
-                            string previousPath = itemHistoryProvider.Filename();
-                            Item previous = previousChangeset.Changes[0].Item;
-
-                            // File was edited
-                            diff = new Mapping(Difference.DiffFiles(currentPath, current.Encoding, previousPath, previous.Encoding, options));
-
-                            bool complete = true;
-                            for (int i = 0; i < revisions.Length; i++)
+                            if (revisions[i] == UNKNOWN)
                             {
-                                if (revisions[i] == UNKNOWN)
+                                int line = mappings[i];
+                                if (!diff.ContainsKey(line))
                                 {
-                                    int line = mappings[i];
-                                    if (!diff.ContainsKey(line))
-                                    {
-                                        int changesetId = currentChangeset != null ? currentChangeset.ChangesetId : LOCAL;
-                                        revisions[i] = changesetId;
-                                    }
-                                    else
-                                    {
-                                        mappings[i] = diff.NewLine(line);
-                                        complete = false;
-                                    }
+                                    int changesetId = currentChangeset != null ? currentChangeset.ChangesetId : LOCAL;
+                                    revisions[i] = changesetId;
+                                }
+                                else
+                                {
+                                    mappings[i] = diff.NewLine(line);
+                                    complete = false;
                                 }
                             }
+                        }
 
-                            // Swap current and previous paths
-                            currentChangeset = previousChangeset;
-                            current = previous;
-                            currentPath = previousPath;
+                        // Swap current and previous paths
+                        currentChangeset = previousChangeset;
+                        current = previous;
+                        currentPath = previousPath;
 
-                            if (complete)
-                            {
-                                break;
-                            }
+                        if (complete)
+                        {
+                            break;
                         }
                     }
 

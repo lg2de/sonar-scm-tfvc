@@ -6,7 +6,7 @@ using Microsoft.TeamFoundation.VersionControl.Client;
 
 namespace SonarTfsAnnotate
 {
-    public class ItemHistoryProvider : IDisposable
+    public class HistoryProvider : IDisposable
     {
         private const int PREFETCH_SIZE = 10;
 
@@ -18,16 +18,24 @@ namespace SonarTfsAnnotate
 
         private int current = -1;
 
-        public ItemHistoryProvider(VersionControlServer server, int itemId, IEnumerable<Changeset> changesets)
+        public HistoryProvider(VersionControlServer server, int itemId, IEnumerable<Changeset> changesets)
         {
             this.server = server;
             this.itemId = itemId;
             
             foreach (Changeset changeset in changesets)
             {
-                this.changesets.Add(changeset);
-                this.filenames.Add(null);
-                this.manualResetEvents.Add(null);
+                if (changeset.Changes.Length != 1)
+                {
+                    throw new InvalidOperationException("Expected exactly 1 change, but got " + changeset.Changes.Length + " for ChangesetId " + changeset.ChangesetId);
+                }
+
+                if ((changeset.Changes[0].ChangeType & ChangeType.Edit) != 0)
+                {
+                    this.changesets.Add(changeset);
+                    this.filenames.Add(null);
+                    this.manualResetEvents.Add(null);
+                }
             }
 
             for (int i = 0; i < PREFETCH_SIZE && i < this.changesets.Count; i++)
@@ -100,7 +108,7 @@ namespace SonarTfsAnnotate
 
         private void Prefetch(int i)
         {
-            Item item = changesets[i].Changes[0].Item; // server.GetItem(itemId, changesets[i].ChangesetId); FIXME Works even when multiple items are changed?
+            Item item = changesets[i].Changes[0].Item;
             filenames[i] = Path.GetTempFileName();
             manualResetEvents[i] = new ManualResetEvent(false);
             Prefetcher prefetcher = new Prefetcher(item, filenames[i], manualResetEvents[i]);
