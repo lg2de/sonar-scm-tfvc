@@ -53,7 +53,9 @@ namespace SonarTfsAnnotate
                 return 3;
             }
 
-            Uri serverUri = Workstation.Current.GetLocalWorkspaceInfo(path).ServerUri;
+            WorkspaceInfo workspaceInfo = Workstation.Current.GetLocalWorkspaceInfo(path);
+            Uri serverUri = workspaceInfo.ServerUri;
+            WorkspaceVersionSpec version = new WorkspaceVersionSpec(workspaceInfo);
             TfsClientCredentials credentials = new TfsClientCredentials(true);
             using (TfsTeamProjectCollection collection = new TfsTeamProjectCollection(serverUri, credentials))
             {
@@ -78,7 +80,7 @@ namespace SonarTfsAnnotate
                     mappings[line] = line;
                 }
 
-                var history = server.QueryHistory(path, VersionSpec.Latest, 0, RecursionType.None, null, null, null, int.MaxValue, true, false, true, false);
+                var history = server.QueryHistory(path, version, 0, RecursionType.None, null, null, version, int.MaxValue, true, false, true, false);
                 using (var historyProvider = new HistoryProvider(server, item.ItemId, (IEnumerable<Changeset>)history))
                 {
                     Mapping diff = null;
