@@ -83,7 +83,7 @@ namespace SonarTfsAnnotate
                 var history = server.QueryHistory(path, version, 0, RecursionType.None, null, null, version, int.MaxValue, true, false, true, false);
                 using (var historyProvider = new HistoryProvider(server, item.ItemId, (IEnumerable<Changeset>)history))
                 {
-                    Mapping diff = null;
+                    Dictionary<int, int> diff = null;
                     while (historyProvider.Next())
                     {
                         Changeset previousChangeset = historyProvider.Changeset();
@@ -91,8 +91,7 @@ namespace SonarTfsAnnotate
                         string previousPath = historyProvider.Filename();
                         Item previous = previousChangeset.Changes[0].Item;
 
-                        // File was edited
-                        diff = new Mapping(Difference.DiffFiles(currentPath, current.Encoding, previousPath, previous.Encoding, options));
+                        diff = Mapping(Difference.DiffFiles(currentPath, current.Encoding, previousPath, previous.Encoding, options));
 
                         bool complete = true;
                         for (int i = 0; i < revisions.Length; i++)
@@ -107,13 +106,12 @@ namespace SonarTfsAnnotate
                                 }
                                 else
                                 {
-                                    mappings[i] = diff.NewLine(line);
+                                    mappings[i] = diff[line];
                                     complete = false;
                                 }
                             }
                         }
 
-                        // Swap current and previous paths
                         currentChangeset = previousChangeset;
                         current = previous;
                         currentPath = previousPath;
@@ -143,7 +141,7 @@ namespace SonarTfsAnnotate
 
                 for (int i = 0; i < lines; i++)
                 {
-                    Console.Write("{0,10}", revisions[i]);
+                    Console.Write(revisions[i]);
                     Console.Write(' ');
                     Console.WriteLine(data[i]);
                 }
@@ -152,41 +150,25 @@ namespace SonarTfsAnnotate
             return 0;
         }
 
-        private class Mapping
+        private static Dictionary<int, int> Mapping(DiffSegment diffSegment)
         {
-            private Dictionary<int, int> m_mapping = new Dictionary<int, int>();
+            var result = new Dictionary<int, int>();
 
-            public Mapping(DiffSegment diffSegment)
+            while (diffSegment != null)
             {
-                while (diffSegment != null)
+                int originalLine = diffSegment.OriginalStart;
+                int modifiedLine = diffSegment.ModifiedStart;
+                for (int i = 0; i < diffSegment.OriginalLength; i++)
                 {
-                    int originalLine = diffSegment.OriginalStart;
-                    int modifiedLine = diffSegment.ModifiedStart;
-                    for (int i = 0; i < diffSegment.OriginalLength; i++)
-                    {
-                        m_mapping.Add(originalLine, modifiedLine);
-                        originalLine++;
-                        modifiedLine++;
-                    }
-
-                    diffSegment = diffSegment.Next;
+                    result.Add(originalLine, modifiedLine);
+                    originalLine++;
+                    modifiedLine++;
                 }
+
+                diffSegment = diffSegment.Next;
             }
 
-            public bool ContainsKey(int line)
-            {
-                return m_mapping.ContainsKey(line);
-            }
-
-            public bool ContainsValue(int line)
-            {
-                return m_mapping.ContainsValue(line);
-            }
-
-            public int NewLine(int line)
-            {
-                return m_mapping[line];
-            }
+            return result;
         }
     }
 }
