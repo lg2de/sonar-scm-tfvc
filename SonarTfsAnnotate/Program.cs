@@ -55,7 +55,32 @@ namespace SonarTfsAnnotate
             {
                 VersionControlServer server = collection.GetService<VersionControlServer>();
 
-                new FileAnnotator(server).Annotate(path, version);
+                IAnnotatedFile annotatedFile = new FileAnnotator(server).Annotate(path, version);
+                for (int i = 0; i < annotatedFile.Lines(); i++)
+                {
+                    switch (annotatedFile.State(i))
+                    {
+                        case AnnotationState.UNKNOWN:
+                            Console.Write("? ");
+                            break;
+                        case AnnotationState.LOCAL:
+                            Console.Write("Local ");
+                            break;
+                        case AnnotationState.COMMITTED:
+                            Changeset changeset = annotatedFile.Changeset(i);
+                            Console.Write(changeset.ChangesetId);
+                            Console.Write(' ');
+                            Console.Write(changeset.Committer);
+                            Console.Write(' ');
+                            Console.Write(changeset.CreationDate.ToString("MM/dd/yyyy"));
+                            Console.Write(' ');
+                            break;
+                        default:
+                            throw new InvalidOperationException("Unsupported annotation state: " + annotatedFile.State(i));
+                    }
+
+                    Console.WriteLine(annotatedFile.Data(i));
+                }
             }
 
             return 0;

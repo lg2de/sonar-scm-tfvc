@@ -30,17 +30,15 @@ namespace SonarTfsAnnotate
         private const int PREFETCH_SIZE = 10;
 
         private readonly VersionControlServer server;
-        private readonly int itemId;
         private List<Changeset> changesets = new List<Changeset>();
         private List<string> filenames = new List<string>();
         private List<ManualResetEvent> manualResetEvents = new List<ManualResetEvent>();
 
         private int current = -1;
 
-        public HistoryProvider(VersionControlServer server, int itemId, IEnumerable<Changeset> changesets)
+        public HistoryProvider(VersionControlServer server, IEnumerable<Changeset> changesets)
         {
             this.server = server;
-            this.itemId = itemId;
             
             foreach (Changeset changeset in changesets)
             {

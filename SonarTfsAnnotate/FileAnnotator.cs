@@ -28,9 +28,6 @@ namespace SonarTfsAnnotate
 {
     class FileAnnotator
     {
-        private const int UNKNOWN = -1;
-        private const int LOCAL = 0;
-
         private readonly VersionControlServer server;
 
         public FileAnnotator(VersionControlServer server)
@@ -38,95 +35,66 @@ namespace SonarTfsAnnotate
             this.server = server;
         }
 
-        public void Annotate(string path, VersionSpec version)
+        public IAnnotatedFile Annotate(string path, VersionSpec version)
         {
-            Item item = server.GetItem(path); // will throw if not found
-
             var options = new DiffOptions();
             options.Flags = DiffOptionFlags.EnablePreambleHandling;
 
+            AnnotatedFile annotatedFile = null;
+            
             Changeset currentChangeset = null;
-            Item current = item;
-            String currentPath = path;
+            String currentPath = null;
+            int currentEncoding = 0;
 
-            string[] data = File.ReadAllLines(currentPath, Encoding.GetEncoding(current.Encoding));
-            int lines = data.Length;
-            int[] revisions = new int[lines];
-            int[] mappings = new int[lines];
-            for (int line = 0; line < lines; line++)
+            PendingChange[] pendingChanges = server.GetWorkspace(path).GetPendingChanges(path);
+            foreach (PendingChange pendingChange in pendingChanges) // TODO Expect at most 1 change?
             {
-                revisions[line] = UNKNOWN;
-                mappings[line] = line;
+                if ((pendingChange.ChangeType & ChangeType.Edit) != 0)
+                {
+                    annotatedFile = new AnnotatedFile(path, pendingChange.Encoding);
+                    currentPath = path;
+                    currentEncoding = pendingChange.Encoding;
+                }
             }
 
             var history = server.QueryHistory(path, version, 0, RecursionType.None, null, null, version, int.MaxValue, true, false, true, false);
-            using (var historyProvider = new HistoryProvider(server, item.ItemId, (IEnumerable<Changeset>)history))
+            using (var historyProvider = new HistoryProvider(server, (IEnumerable<Changeset>)history))
             {
+                bool done = false;
                 Dictionary<int, int> diff = null;
-                while (historyProvider.Next())
+
+                while (!done && historyProvider.Next())
                 {
                     Changeset previousChangeset = historyProvider.Changeset();
 
                     string previousPath = historyProvider.Filename();
-                    Item previous = previousChangeset.Changes[0].Item;
+                    int previousEncoding = previousChangeset.Changes[0].Item.Encoding;
 
-                    diff = Mapping(Difference.DiffFiles(currentPath, current.Encoding, previousPath, previous.Encoding, options));
-
-                    bool complete = true;
-                    for (int i = 0; i < revisions.Length; i++)
+                    if (annotatedFile == null)
                     {
-                        if (revisions[i] == UNKNOWN)
-                        {
-                            int line = mappings[i];
-                            if (!diff.ContainsKey(line))
-                            {
-                                int changesetId = currentChangeset != null ? currentChangeset.ChangesetId : LOCAL;
-                                revisions[i] = changesetId;
-                            }
-                            else
-                            {
-                                mappings[i] = diff[line];
-                                complete = false;
-                            }
-                        }
+                        annotatedFile = new AnnotatedFile(previousPath, previousEncoding);
+                    }
+                    else
+                    {
+                        diff = DiffMapping(Difference.DiffFiles(currentPath, currentEncoding, previousPath, previousEncoding, options));
+                        done = annotatedFile.ApplyDiff(currentChangeset, diff);
                     }
 
                     currentChangeset = previousChangeset;
-                    current = previous;
+                    currentEncoding = previousEncoding;
                     currentPath = previousPath;
-
-                    if (complete)
-                    {
-                        break;
-                    }
                 }
 
                 if (diff != null)
                 {
-                    for (int i = 0; i < revisions.Length; i++)
-                    {
-                        if (revisions[i] == UNKNOWN)
-                        {
-                            int line = mappings[i];
-                            if (diff.ContainsValue(line))
-                            {
-                                int changesetId = currentChangeset != null ? currentChangeset.ChangesetId : LOCAL;
-                                revisions[i] = changesetId;
-                            }
-                        }
-                    }
+                    annotatedFile.ApplyLastDiff(currentChangeset, diff);
                 }
             }
 
-            for (int i = 0; i < lines; i++)
-            {
-                Console.Write(revisions[i]);
-                Console.Write(' ');
-                Console.WriteLine(data[i]);
-            }
+            return annotatedFile;
         }
 
-        private static Dictionary<int, int> Mapping(DiffSegment diffSegment)
+        private static Dictionary<int, int> DiffMapping(DiffSegment diffSegment)
         {
             var result = new Dictionary<int, int>();
 
@@ -146,5 +114,126 @@ namespace SonarTfsAnnotate
 
             return result;
         }
+
+
+        private class AnnotatedFile : IAnnotatedFile
+        {
+            private const int UNKNOWN = -1;
+            private const int LOCAL = 0;
+
+            private readonly string[] data;
+            private readonly int lines;
+            private readonly int[] revisions;
+            private readonly int[] mappings;
+            private readonly IDictionary<int, Changeset> changesets = new Dictionary<int, Changeset>();
+
+            public AnnotatedFile(string path, int encoding)
+            {
+                data = File.ReadAllLines(path, Encoding.GetEncoding(encoding));
+                lines = data.Length;
+                revisions = new int[lines];
+                mappings = new int[lines];
+                for (int i = 0; i < lines; i++)
+                {
+                    revisions[i] = UNKNOWN;
+                    mappings[i] = i;
+                }
+            }
+
+            public bool ApplyDiff(Changeset changeset, Dictionary<int, int> diff)
+            {
+                bool done = true;
+
+                for (int i = 0; i < revisions.Length; i++)
+                {
+                    if (revisions[i] == UNKNOWN)
+                    {
+                        int line = mappings[i];
+                        if (!diff.ContainsKey(line))
+                        {
+                            Associate(i, changeset);
+                        }
+                        else
+                        {
+                            mappings[i] = diff[line];
+                            done = false;
+                        }
+                    }
+                }
+
+                return done;
+            }
+
+            public void ApplyLastDiff(Changeset changeset, Dictionary<int, int> diff)
+            {
+                for (int i = 0; i < revisions.Length; i++)
+                {
+                    if (revisions[i] == UNKNOWN)
+                    {
+                        int line = mappings[i];
+                        if (diff.ContainsValue(line))
+                        {
+                            Associate(i, changeset);
+                        }
+                    }
+                }
+            }
+
+            private void Associate(int line, Changeset changeset)
+            {
+                int changesetId = changeset != null ? changeset.ChangesetId : LOCAL;
+                revisions[line] = changesetId;
+                if (!changesets.ContainsKey(changesetId))
+                {
+                    changesets.Add(changesetId, changeset);
+                }
+            }
+
+            public int Lines()
+            {
+                return lines;
+            }
+
+            public string Data(int line)
+            {
+                return data[line];
+            }
+
+            public AnnotationState State(int line)
+            {
+                switch (revisions[line])
+                {
+                    case UNKNOWN:
+                        return AnnotationState.UNKNOWN;
+                    case LOCAL:
+                        return AnnotationState.LOCAL;
+                    default:
+                        return AnnotationState.COMMITTED;
+                }
+            }
+
+            public Changeset Changeset(int line)
+            {
+                return changesets[revisions[line]];
+            }
+        }
+    }
+
+    public interface IAnnotatedFile
+    {
+        int Lines();
+
+        string Data(int line);
+
+        AnnotationState State(int line);
+
+        Changeset Changeset(int line);
+    }
+
+    public enum AnnotationState
+    {
+        UNKNOWN,
+        LOCAL,
+        COMMITTED
     }
 }
