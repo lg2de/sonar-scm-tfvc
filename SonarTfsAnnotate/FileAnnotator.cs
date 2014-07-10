@@ -73,7 +73,6 @@ namespace SonarTfsAnnotate
             using (var historyProvider = new HistoryProvider(server, (IEnumerable<Changeset>)history))
             {
                 bool done = false;
-                Dictionary<int, int> diff = null;
 
                 while (!done && historyProvider.Next())
                 {
@@ -97,7 +96,7 @@ namespace SonarTfsAnnotate
                     }
                     else
                     {
-                        diff = DiffMapping(Difference.DiffFiles(currentPath, currentEncoding, previousPath, previousEncoding, options));
+                        var diff = Diff(Difference.DiffFiles(currentPath, currentEncoding, previousPath, previousEncoding, options));
                         done = annotatedFile.ApplyDiff(currentChangeset, diff);
                     }
 
@@ -106,16 +105,16 @@ namespace SonarTfsAnnotate
                     currentPath = previousPath;
                 }
 
-                if (diff != null)
+                if (annotatedFile != null)
                 {
-                    annotatedFile.ApplyLastDiff(currentChangeset, diff);
+                    annotatedFile.Apply(currentChangeset);
                 }
             }
 
             return annotatedFile;
         }
 
-        private static Dictionary<int, int> DiffMapping(DiffSegment diffSegment)
+        private static Dictionary<int, int> Diff(DiffSegment diffSegment)
         {
             var result = new Dictionary<int, int>();
 
@@ -201,21 +200,6 @@ namespace SonarTfsAnnotate
                 }
 
                 return done;
-            }
-
-            public void ApplyLastDiff(Changeset changeset, Dictionary<int, int> diff)
-            {
-                for (int i = 0; i < revisions.Length; i++)
-                {
-                    if (revisions[i] == UNKNOWN)
-                    {
-                        int line = mappings[i];
-                        if (diff.ContainsValue(line))
-                        {
-                            Associate(i, changeset);
-                        }
-                    }
-                }
             }
 
             private void Associate(int line, Changeset changeset)
