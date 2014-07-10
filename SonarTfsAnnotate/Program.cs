@@ -56,6 +56,12 @@ namespace SonarTfsAnnotate
                 VersionControlServer server = collection.GetService<VersionControlServer>();
 
                 IAnnotatedFile annotatedFile = new FileAnnotator(server).Annotate(path, version);
+                if (annotatedFile == null)
+                {
+                    Console.Error.WriteLine("The given file has not yet been checked-in: " + path);
+                    return 4;
+                }
+
                 for (int i = 0; i < annotatedFile.Lines(); i++)
                 {
                     switch (annotatedFile.State(i))
