@@ -49,12 +49,16 @@ namespace SonarTfsAnnotate
             Changeset currentChangeset = null;
 
             AnnotatedFile annotatedFile;
-            String currentPath;
+            string currentPath;
             int currentEncoding;
 
             if (pendingChanges.Length == 1 && (pendingChanges[0].ChangeType & ChangeType.Edit) != 0)
             {
                 annotatedFile = new AnnotatedFile(path, pendingChanges[0].Encoding);
+                if (annotatedFile.IsBinary())
+                {
+                    return annotatedFile;
+                }
                 currentPath = path;
                 currentEncoding = pendingChanges[0].Encoding;
             }
@@ -81,6 +85,15 @@ namespace SonarTfsAnnotate
                     if (annotatedFile == null)
                     {
                         annotatedFile = new AnnotatedFile(previousPath, previousEncoding);
+                        if (annotatedFile.IsBinary())
+                        {
+                            return annotatedFile;
+                        }
+                    }
+                    else if (previousEncoding == -1)
+                    {
+                        annotatedFile.Apply(currentChangeset);
+                        done = true;
                     }
                     else
                     {
@@ -123,12 +136,12 @@ namespace SonarTfsAnnotate
             return result;
         }
 
-
         private class AnnotatedFile : IAnnotatedFile
         {
             private const int UNKNOWN = -1;
             private const int LOCAL = 0;
 
+            private readonly bool isBinary;
             private readonly string[] data;
             private readonly int lines;
             private readonly int[] revisions;
@@ -137,14 +150,32 @@ namespace SonarTfsAnnotate
 
             public AnnotatedFile(string path, int encoding)
             {
-                data = File.ReadAllLines(path, Encoding.GetEncoding(encoding));
-                lines = data.Length;
-                revisions = new int[lines];
-                mappings = new int[lines];
-                for (int i = 0; i < lines; i++)
+                if (encoding == -1)
                 {
-                    revisions[i] = UNKNOWN;
-                    mappings[i] = i;
+                    isBinary = true;
+                }
+                else
+                {
+                    data = File.ReadAllLines(path, Encoding.GetEncoding(encoding));
+                    lines = data.Length;
+                    revisions = new int[lines];
+                    mappings = new int[lines];
+                    for (int i = 0; i < lines; i++)
+                    {
+                        revisions[i] = UNKNOWN;
+                        mappings[i] = i;
+                    }
+                }
+            }
+
+            public void Apply(Changeset changeset)
+            {
+                for (int i = 0; i < revisions.Length; i++)
+                {
+                    if (revisions[i] == UNKNOWN)
+                    {
+                        Associate(i, changeset);
+                    }
                 }
             }
 
@@ -197,18 +228,26 @@ namespace SonarTfsAnnotate
                 }
             }
 
+            public bool IsBinary()
+            {
+                return isBinary;
+            }
+
             public int Lines()
             {
+                ThrowIfBinaryFile();
                 return lines;
             }
 
             public string Data(int line)
             {
+                ThrowIfBinaryFile();
                 return data[line];
             }
 
             public AnnotationState State(int line)
             {
+                ThrowIfBinaryFile();
                 switch (revisions[line])
                 {
                     case UNKNOWN:
@@ -222,13 +261,24 @@ namespace SonarTfsAnnotate
 
             public Changeset Changeset(int line)
             {
+                ThrowIfBinaryFile();
                 return changesets[revisions[line]];
             }
+
+            private void ThrowIfBinaryFile()
+            {
+                if (IsBinary())
+                {
+                    throw new InvalidOperationException("Not supported on binary files!");
+                }
+            }     
         }
     }
 
     public interface IAnnotatedFile
     {
+        bool IsBinary();
+
         int Lines();
 
         string Data(int line);

@@ -62,6 +62,12 @@ namespace SonarTfsAnnotate
                     return 4;
                 }
 
+                if (annotatedFile.IsBinary())
+                {
+                    Console.Error.WriteLine("The given file is a binary one: " + path);
+                    return 5;
+                }
+
                 for (int i = 0; i < annotatedFile.Lines(); i++)
                 {
                     switch (annotatedFile.State(i))
