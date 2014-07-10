@@ -25,7 +25,7 @@ using Microsoft.TeamFoundation.VersionControl.Client;
 
 namespace SonarTfsAnnotate
 {
-    public class HistoryProvider : IDisposable
+    class HistoryProvider : IDisposable
     {
         private const int PREFETCH_SIZE = 10;
 

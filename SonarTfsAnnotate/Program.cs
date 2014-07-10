@@ -18,20 +18,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.VersionControl.Client;
-using Microsoft.TeamFoundation.VersionControl.Common;
 
 namespace SonarTfsAnnotate
 {
     class Program
     {
-        private const int UNKNOWN = -1;
-        private const int LOCAL = 0;
-
         static int Main(string[] args)
         {
             if (args.Length != 1)
@@ -61,114 +55,10 @@ namespace SonarTfsAnnotate
             {
                 VersionControlServer server = collection.GetService<VersionControlServer>();
 
-                Item item = server.GetItem(path); // will throw if not found
-
-                var options = new DiffOptions();
-                options.Flags = DiffOptionFlags.EnablePreambleHandling;
-
-                Changeset currentChangeset = null;
-                Item current = item;
-                String currentPath = path;
-
-                string[] data = File.ReadAllLines(currentPath, Encoding.GetEncoding(current.Encoding));
-                int lines = data.Length;
-                int[] revisions = new int[lines];
-                int[] mappings = new int[lines];
-                for (int line = 0; line < lines; line++)
-                {
-                    revisions[line] = UNKNOWN;
-                    mappings[line] = line;
-                }
-
-                var history = server.QueryHistory(path, version, 0, RecursionType.None, null, null, version, int.MaxValue, true, false, true, false);
-                using (var historyProvider = new HistoryProvider(server, item.ItemId, (IEnumerable<Changeset>)history))
-                {
-                    Dictionary<int, int> diff = null;
-                    while (historyProvider.Next())
-                    {
-                        Changeset previousChangeset = historyProvider.Changeset();
-
-                        string previousPath = historyProvider.Filename();
-                        Item previous = previousChangeset.Changes[0].Item;
-
-                        diff = Mapping(Difference.DiffFiles(currentPath, current.Encoding, previousPath, previous.Encoding, options));
-
-                        bool complete = true;
-                        for (int i = 0; i < revisions.Length; i++)
-                        {
-                            if (revisions[i] == UNKNOWN)
-                            {
-                                int line = mappings[i];
-                                if (!diff.ContainsKey(line))
-                                {
-                                    int changesetId = currentChangeset != null ? currentChangeset.ChangesetId : LOCAL;
-                                    revisions[i] = changesetId;
-                                }
-                                else
-                                {
-                                    mappings[i] = diff[line];
-                                    complete = false;
-                                }
-                            }
-                        }
-
-                        currentChangeset = previousChangeset;
-                        current = previous;
-                        currentPath = previousPath;
-
-                        if (complete)
-                        {
-                            break;
-                        }
-                    }
-
-                    if (diff != null)
-                    {
-                        for (int i = 0; i < revisions.Length; i++)
-                        {
-                            if (revisions[i] == UNKNOWN)
-                            {
-                                int line = mappings[i];
-                                if (diff.ContainsValue(line))
-                                {
-                                    int changesetId = currentChangeset != null ? currentChangeset.ChangesetId : LOCAL;
-                                    revisions[i] = changesetId;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                for (int i = 0; i < lines; i++)
-                {
-                    Console.Write(revisions[i]);
-                    Console.Write(' ');
-                    Console.WriteLine(data[i]);
-                }
+                new FileAnnotator(server).Annotate(path, version);
             }
 
             return 0;
-        }
-
-        private static Dictionary<int, int> Mapping(DiffSegment diffSegment)
-        {
-            var result = new Dictionary<int, int>();
-
-            while (diffSegment != null)
-            {
-                int originalLine = diffSegment.OriginalStart;
-                int modifiedLine = diffSegment.ModifiedStart;
-                for (int i = 0; i < diffSegment.OriginalLength; i++)
-                {
-                    result.Add(originalLine, modifiedLine);
-                    originalLine++;
-                    modifiedLine++;
-                }
-
-                diffSegment = diffSegment.Next;
-            }
-
-            return result;
         }
     }
 }
