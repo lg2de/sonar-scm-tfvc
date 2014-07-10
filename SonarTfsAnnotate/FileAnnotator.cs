@@ -40,21 +40,29 @@ namespace SonarTfsAnnotate
             var options = new DiffOptions();
             options.Flags = DiffOptionFlags.EnablePreambleHandling;
 
-            AnnotatedFile annotatedFile = null;
-            
-            Changeset currentChangeset = null;
-            String currentPath = null;
-            int currentEncoding = 0;
-
             PendingChange[] pendingChanges = server.GetWorkspace(path).GetPendingChanges(path);
-            foreach (PendingChange pendingChange in pendingChanges) // TODO Expect at most 1 change?
+            if (pendingChanges.Length >= 2)
             {
-                if ((pendingChange.ChangeType & ChangeType.Edit) != 0)
-                {
-                    annotatedFile = new AnnotatedFile(path, pendingChange.Encoding);
-                    currentPath = path;
-                    currentEncoding = pendingChange.Encoding;
-                }
+                throw new InvalidOperationException("Expected at most 1 pending change, but got " + pendingChanges.Length);
+            }
+
+            Changeset currentChangeset = null;
+
+            AnnotatedFile annotatedFile;
+            String currentPath;
+            int currentEncoding;
+
+            if (pendingChanges.Length == 1 && (pendingChanges[0].ChangeType & ChangeType.Edit) != 0)
+            {
+                annotatedFile = new AnnotatedFile(path, pendingChanges[0].Encoding);
+                currentPath = path;
+                currentEncoding = pendingChanges[0].Encoding;
+            }
+            else
+            {
+                annotatedFile = null;
+                currentPath = null;
+                currentEncoding = 0;
             }
 
             var history = server.QueryHistory(path, version, 0, RecursionType.None, null, null, version, int.MaxValue, true, false, true, false);

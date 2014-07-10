@@ -61,10 +61,10 @@ namespace SonarTfsAnnotate
                     switch (annotatedFile.State(i))
                     {
                         case AnnotationState.UNKNOWN:
-                            Console.Write("? ");
+                            Console.Write("unknown ");
                             break;
                         case AnnotationState.LOCAL:
-                            Console.Write("Local ");
+                            Console.Write("local ");
                             break;
                         case AnnotationState.COMMITTED:
                             Changeset changeset = annotatedFile.Changeset(i);
