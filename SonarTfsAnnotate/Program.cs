@@ -28,13 +28,13 @@ namespace SonarTfsAnnotate
     {
         static int Main(string[] args)
         {
-            if (args.Length != 1)
+            if (args.Length == 0)
             {
                 Console.Error.WriteLine("Expected exactly one argument, the file to annotate. " + args.Length + " given.");
                 return 1;
             }
 
-            String path = args[0];
+            String path = args[args.Length - 1];
             if (!File.Exists(path))
             {
                 Console.Error.WriteLine("The given file does not exist: " + path);
