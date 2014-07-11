@@ -1,6 +1,6 @@
 ## SonarQube TFS annotate command line tool
 
-# How to use?
+### How to use?
 
 	SonarTfsAnnotate.exe [filename]
 
@@ -12,14 +12,11 @@ which, for example, outputs:
 
 the format is, depending on the state of the line:
 
-* committed:
-	[changeset id] [committer] [MM/dd/yyyy] [line contents]
-* local:
-	local [line contents]
-* unknown:
-	unknown [line contents]
+* committed: [changeset id] [committer] [MM/dd/yyyy] [line contents]
+* local: local [line contents]
+* unknown: unknown [line contents]
 
-# Features
+### Features
 
 * Reports the last changeset id, committer and date next to each line
 * Up to 4 times faster than "tfpt.exe annotate", by prefetching older revisions
@@ -31,6 +28,6 @@ the format is, depending on the state of the line:
 * Requires the .NET framework 4.5 to be installed
 * Compatible with the released SCM Activity plugin 1.7.1
 
-# Issue tracker
+### Issue tracker
 
 http://jira.codehaus.org/browse/SONARTFS
