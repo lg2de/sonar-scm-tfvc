@@ -8,7 +8,7 @@ which, for example, outputs:
 
 	26274 SND\DinSoft_cp 07/10/2014 hello,
 	26274 SND\DinSoft_cp 07/10/2014 world!
-	local I need to commit this line.
+	local I need to check this line in.
 	26275 SND\DinSoft_cp 07/13/2014 woohoo!
 
 the format is, depending on the state of the line:
