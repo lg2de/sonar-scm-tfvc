@@ -13,7 +13,7 @@ which, for example, outputs:
 
 the format is, depending on the state of the line:
 
-* committed: [changeset id] [committer] [MM/dd/yyyy] [line contents]
+* committed: [changeset id] [owner] [MM/dd/yyyy] [line contents]
 * local: local [line contents]
 * unknown: unknown [line contents]
 
