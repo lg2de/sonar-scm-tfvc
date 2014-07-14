@@ -19,9 +19,8 @@ the format is, depending on the state of the line:
 
 ### Highlights
 
-* Reports the last changeset id, committer and date next to each line
+* Reports the last changeset id, owner and date next to each line
 * Up to 4 times faster than "tfpt.exe annotate", by prefetching older revisions
-* Supports branches, the committer, not the owner, is displayed
 * Supports TFS 2013 (not yet tested with older versions)
 * Supports local modifications
 * Supports local versions different from latest

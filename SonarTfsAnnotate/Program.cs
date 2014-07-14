@@ -82,7 +82,7 @@ namespace SonarTfsAnnotate
                             Changeset changeset = annotatedFile.Changeset(i);
                             Console.Write(changeset.ChangesetId);
                             Console.Write(' ');
-                            Console.Write(changeset.Committer);
+                            Console.Write(changeset.Owner);
                             Console.Write(' ');
                             Console.Write(changeset.CreationDate.ToString("MM/dd/yyyy"));
                             Console.Write(' ');
