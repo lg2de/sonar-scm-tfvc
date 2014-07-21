@@ -22,7 +22,7 @@ using System.IO;
 using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.VersionControl.Client;
 
-namespace SonarTfsAnnotate
+namespace SonarSource.TfsAnnotate
 {
     class Program
     {

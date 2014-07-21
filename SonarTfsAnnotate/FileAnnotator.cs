@@ -24,7 +24,7 @@ using System.Text;
 using Microsoft.TeamFoundation.VersionControl.Client;
 using Microsoft.TeamFoundation.VersionControl.Common;
 
-namespace SonarTfsAnnotate
+namespace SonarSource.TfsAnnotate
 {
     class FileAnnotator
     {

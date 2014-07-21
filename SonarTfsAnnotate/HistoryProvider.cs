@@ -23,7 +23,7 @@ using System.IO;
 using System.Threading;
 using Microsoft.TeamFoundation.VersionControl.Client;
 
-namespace SonarTfsAnnotate
+namespace SonarSource.TfsAnnotate
 {
     class HistoryProvider : IDisposable
     {
