@@ -1,5 +1,12 @@
 ## SonarQube TFS annotate command line tool
 
+### Installation
+
+Build SonarTfsAnnotate.exe from the sources,
+or download the latest released version from: http://dist.sonarsource.com/SonarTfsAnnotate.exe
+
+Make it available from the %PATH% environment variable.
+
 ### How to use?
 
 	SonarTfsAnnotate.exe [filename]
