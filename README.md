@@ -3,7 +3,7 @@
 ### Installation
 
 Build SonarTfsAnnotate.exe from the sources,
-or download the latest released version from: http://dist.sonarsource.com/SonarTfsAnnotate.exe
+or download the latest released version from: http://dist.sonarsource.com/tfsannotate/download/SonarTfsAnnotate.exe
 
 Make it available from the %PATH% environment variable.
 
