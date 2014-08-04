@@ -84,7 +84,7 @@ namespace SonarSource.TfsAnnotate
                             Console.Write(' ');
                             Console.Write(changeset.Owner);
                             Console.Write(' ');
-                            Console.Write(changeset.CreationDate.ToString("MM/dd/yyyy"));
+                            Console.Write(changeset.CreationDate.ToString("MM\\/dd\\/yyyy"));
                             Console.Write(' ');
                             break;
                         default:
