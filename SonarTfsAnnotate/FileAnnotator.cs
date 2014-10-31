@@ -17,16 +17,17 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using Microsoft.TeamFoundation.VersionControl.Client;
-using Microsoft.TeamFoundation.VersionControl.Common;
 
 namespace SonarSource.TfsAnnotate
 {
-    class FileAnnotator
+    using Microsoft.TeamFoundation.VersionControl.Client;
+    using Microsoft.TeamFoundation.VersionControl.Common;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Text;
+
+    public class FileAnnotator
     {
         private readonly VersionControlServer server;
 
@@ -40,7 +41,7 @@ namespace SonarSource.TfsAnnotate
             var options = new DiffOptions();
             options.Flags = DiffOptionFlags.EnablePreambleHandling;
 
-            PendingChange[] pendingChanges = server.GetWorkspace(path).GetPendingChanges(path);
+            PendingChange[] pendingChanges = this.server.GetWorkspace(path).GetPendingChanges(path);
             if (pendingChanges.Length >= 2)
             {
                 throw new InvalidOperationException("Expected at most 1 pending change, but got " + pendingChanges.Length);
@@ -59,6 +60,7 @@ namespace SonarSource.TfsAnnotate
                 {
                     return annotatedFile;
                 }
+
                 currentPath = path;
                 currentEncoding = pendingChanges[0].Encoding;
             }
@@ -69,8 +71,8 @@ namespace SonarSource.TfsAnnotate
                 currentEncoding = 0;
             }
 
-            var history = server.QueryHistory(path, version, 0, RecursionType.None, null, null, version, int.MaxValue, true, false, true, false);
-            using (var historyProvider = new HistoryProvider(server, (IEnumerable<Changeset>)history))
+            var history = this.server.QueryHistory(path, version, 0, RecursionType.None, null, null, version, int.MaxValue, true, false, true, false);
+            using (var historyProvider = new HistoryProvider(this.server, (IEnumerable<Changeset>)history))
             {
                 bool done = false;
 
@@ -78,7 +80,7 @@ namespace SonarSource.TfsAnnotate
                 {
                     Changeset previousChangeset = historyProvider.Changeset();
 
-                    string previousPath = historyProvider.Filename();
+                    string previousPath = historyProvider.FileName();
                     int previousEncoding = previousChangeset.Changes[0].Item.Encoding;
 
                     if (annotatedFile == null)
@@ -135,7 +137,7 @@ namespace SonarSource.TfsAnnotate
             return result;
         }
 
-        private class AnnotatedFile : IAnnotatedFile
+        private sealed class AnnotatedFile : IAnnotatedFile
         {
             private const int UNKNOWN = -1;
             private const int LOCAL = 0;
@@ -151,49 +153,49 @@ namespace SonarSource.TfsAnnotate
             {
                 if (encoding == -1)
                 {
-                    isBinary = true;
+                    this.isBinary = true;
                 }
                 else
                 {
-                    data = File.ReadAllLines(path, Encoding.GetEncoding(encoding));
-                    lines = data.Length;
-                    revisions = new int[lines];
-                    mappings = new int[lines];
-                    for (int i = 0; i < lines; i++)
+                    this.data = File.ReadAllLines(path, Encoding.GetEncoding(encoding));
+                    this.lines = this.data.Length;
+                    this.revisions = new int[this.lines];
+                    this.mappings = new int[this.lines];
+                    for (int i = 0; i < this.lines; i++)
                     {
-                        revisions[i] = UNKNOWN;
-                        mappings[i] = i;
+                        this.revisions[i] = UNKNOWN;
+                        this.mappings[i] = i;
                     }
                 }
             }
 
             public void Apply(Changeset changeset)
             {
-                for (int i = 0; i < revisions.Length; i++)
+                for (int i = 0; i < this.revisions.Length; i++)
                 {
-                    if (revisions[i] == UNKNOWN)
+                    if (this.revisions[i] == UNKNOWN)
                     {
                         Associate(i, changeset);
                     }
                 }
             }
 
-            public bool ApplyDiff(Changeset changeset, Dictionary<int, int> diff)
+            public bool ApplyDiff(Changeset changeset, IReadOnlyDictionary<int, int> diff)
             {
                 bool done = true;
 
                 for (int i = 0; i < revisions.Length; i++)
                 {
-                    if (revisions[i] == UNKNOWN)
+                    if (this.revisions[i] == UNKNOWN)
                     {
-                        int line = mappings[i];
+                        int line = this.mappings[i];
                         if (!diff.ContainsKey(line))
                         {
                             Associate(i, changeset);
                         }
                         else
                         {
-                            mappings[i] = diff[line];
+                            this.mappings[i] = diff[line];
                             done = false;
                         }
                     }
@@ -205,34 +207,34 @@ namespace SonarSource.TfsAnnotate
             private void Associate(int line, Changeset changeset)
             {
                 int changesetId = changeset != null ? changeset.ChangesetId : LOCAL;
-                revisions[line] = changesetId;
-                if (!changesets.ContainsKey(changesetId))
+                this.revisions[line] = changesetId;
+                if (!this.changesets.ContainsKey(changesetId))
                 {
-                    changesets.Add(changesetId, changeset);
+                    this.changesets.Add(changesetId, changeset);
                 }
             }
 
             public bool IsBinary()
             {
-                return isBinary;
+                return this.isBinary;
             }
 
             public int Lines()
             {
-                ThrowIfBinaryFile();
-                return lines;
+                this.ThrowIfBinaryFile();
+                return this.lines;
             }
 
             public string Data(int line)
             {
-                ThrowIfBinaryFile();
-                return data[line];
+                this.ThrowIfBinaryFile();
+                return this.data[line];
             }
 
             public AnnotationState State(int line)
             {
-                ThrowIfBinaryFile();
-                switch (revisions[line])
+                this.ThrowIfBinaryFile();
+                switch (this.revisions[line])
                 {
                     case UNKNOWN:
                         return AnnotationState.UNKNOWN;
@@ -245,13 +247,13 @@ namespace SonarSource.TfsAnnotate
 
             public Changeset Changeset(int line)
             {
-                ThrowIfBinaryFile();
-                return changesets[revisions[line]];
+                this.ThrowIfBinaryFile();
+                return this.changesets[revisions[line]];
             }
 
             private void ThrowIfBinaryFile()
             {
-                if (IsBinary())
+                if (this.IsBinary())
                 {
                     throw new InvalidOperationException("Not supported on binary files!");
                 }

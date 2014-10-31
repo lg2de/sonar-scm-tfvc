@@ -17,24 +17,31 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
-using System;
-using System.IO;
-using Microsoft.TeamFoundation.Client;
-using Microsoft.TeamFoundation.VersionControl.Client;
 
 namespace SonarSource.TfsAnnotate
 {
-    class Program
+    using Microsoft.TeamFoundation;
+    using Microsoft.TeamFoundation.Client;
+    using Microsoft.TeamFoundation.VersionControl.Client;
+    using System;
+    using System.Globalization;
+    using System.IO;
+    using System.Net;
+
+    public class Program
     {
-        static int Main(string[] args)
+        public static int Main(string[] args)
         {
-            if (args.Length == 0)
+            if (args.Length != 3)
             {
-                Console.Error.WriteLine("Expected exactly one argument, the file to annotate. " + args.Length + " given.");
+                Console.Error.WriteLine("Expected exactly three argument, the file to annotate. " + args.Length + " given.");
                 return 1;
             }
 
-            String path = args[args.Length - 1];
+            string path = args[0];
+            string user = args[1];
+            string password = args[2];
+
             if (!File.Exists(path))
             {
                 Console.Error.WriteLine("The given file does not exist: " + path);
@@ -51,21 +58,36 @@ namespace SonarSource.TfsAnnotate
             Uri serverUri = workspaceInfo.ServerUri;
             WorkspaceVersionSpec version = new WorkspaceVersionSpec(workspaceInfo);
             TfsClientCredentials credentials = new TfsClientCredentials(true);
+            credentials.AllowInteractive = false;
+            
             using (TfsTeamProjectCollection collection = new TfsTeamProjectCollection(serverUri, credentials))
             {
+                collection.Credentials = new NetworkCredential(user, password);
+
+                try
+                {
+                    collection.Authenticate();
+                }
+                catch (TeamFoundationServerUnauthorizedException)
+                {
+                    Console.Error.WriteLine("The user {0} can't access to the server {1} with the password {2}", user, serverUri.OriginalString, password);
+                    return 4;
+                }                
+
                 VersionControlServer server = collection.GetService<VersionControlServer>();
 
                 IAnnotatedFile annotatedFile = new FileAnnotator(server).Annotate(path, version);
+                
                 if (annotatedFile == null)
                 {
                     Console.Error.WriteLine("The given file has not yet been checked-in: " + path);
-                    return 4;
+                    return 5;
                 }
 
                 if (annotatedFile.IsBinary())
                 {
                     Console.Error.WriteLine("The given file is a binary one: " + path);
-                    return 5;
+                    return 6;
                 }
 
                 for (int i = 0; i < annotatedFile.Lines(); i++)
@@ -84,7 +106,7 @@ namespace SonarSource.TfsAnnotate
                             Console.Write(' ');
                             Console.Write(changeset.Owner);
                             Console.Write(' ');
-                            Console.Write(changeset.CreationDate.ToString("MM\\/dd\\/yyyy"));
+                            Console.Write(changeset.CreationDate.ToString("MM\\/dd\\/yyyy", CultureInfo.InvariantCulture));
                             Console.Write(' ');
                             break;
                         default:

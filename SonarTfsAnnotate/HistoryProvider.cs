@@ -17,22 +17,23 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading;
-using Microsoft.TeamFoundation.VersionControl.Client;
 
 namespace SonarSource.TfsAnnotate
 {
-    class HistoryProvider : IDisposable
+    using Microsoft.TeamFoundation.VersionControl.Client;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Threading;
+
+    public class HistoryProvider : IDisposable
     {
         private const int PREFETCH_SIZE = 10;
 
         private readonly VersionControlServer server;
-        private List<Changeset> changesets = new List<Changeset>();
-        private List<string> filenames = new List<string>();
-        private List<ManualResetEvent> manualResetEvents = new List<ManualResetEvent>();
+        private readonly List<Changeset> changesets = new List<Changeset>();
+        private readonly List<string> filenames = new List<string>();
+        private readonly List<ManualResetEvent> manualResetEvents = new List<ManualResetEvent>();
 
         private int current = -1;
 
@@ -57,67 +58,69 @@ namespace SonarSource.TfsAnnotate
 
             for (int i = 0; i < PREFETCH_SIZE && i < this.changesets.Count; i++)
             {
-                Prefetch(i);
+                this.Prefetch(i);
             }
         }
 
         public bool Next()
         {
-            if (current - 1 >= 0)
+            if (this.current - 1 >= 0)
             {
-                Dispose(current - 1);
+                this.Dispose(this.current - 1);
             }
 
-            current++;
-            if (current >= changesets.Count)
+            this.current++;
+            if (this.current >= this.changesets.Count)
             {
                 return false;
             }
 
-            if (current + PREFETCH_SIZE < changesets.Count)
+            if (this.current + PREFETCH_SIZE < this.changesets.Count)
             {
-                Prefetch(current + PREFETCH_SIZE);
+                this.Prefetch(this.current + PREFETCH_SIZE);
             }
 
-            manualResetEvents[current].WaitOne();
+            this.manualResetEvents[this.current].WaitOne();
 
             return true;
         }
 
         public Changeset Changeset()
         {
-            ThrowIfNoElement();
-            return changesets[current];
+            this.ThrowIfNoElement();
+            return this.changesets[this.current];
         }
 
-        public string Filename()
+        public string FileName()
         {
-            ThrowIfNoElement();
-            return filenames[current];
+            this.ThrowIfNoElement();
+            return this.filenames[this.current];
         }
 
         public void Dispose()
         {
-            for (int i = 0; i < changesets.Count; i++)
+            for (int i = 0; i < this.changesets.Count; i++)
             {
-                Dispose(i);
+                this.Dispose(i);
+                GC.SuppressFinalize(this);
             }
         }
 
         private void Dispose(int i)
         {
-            changesets[i] = null;
-            if (filenames[i] != null)
+            this.changesets[i] = null;
+            if (this.filenames[i] != null)
             {
-                File.Delete(filenames[i]);
-                filenames[i] = null;
+                File.Delete(this.filenames[i]);
+                this.filenames[i] = null;
             }
-            manualResetEvents[i] = null;
+            
+            this.manualResetEvents[i] = null;
         }
 
         private void ThrowIfNoElement()
         {
-            if (current >= changesets.Count)
+            if (this.current >= this.changesets.Count)
             {
                 throw new InvalidOperationException("No more elements");
             }
@@ -125,14 +128,14 @@ namespace SonarSource.TfsAnnotate
 
         private void Prefetch(int i)
         {
-            Item item = changesets[i].Changes[0].Item;
-            filenames[i] = Path.GetTempFileName();
-            manualResetEvents[i] = new ManualResetEvent(false);
-            Prefetcher prefetcher = new Prefetcher(item, filenames[i], manualResetEvents[i]);
+            Item item = this.changesets[i].Changes[0].Item;
+            this.filenames[i] = Path.GetTempFileName();
+            this.manualResetEvents[i] = new ManualResetEvent(false);
+            Prefetcher prefetcher = new Prefetcher(item, this.filenames[i], this.manualResetEvents[i]);
             ThreadPool.QueueUserWorkItem(prefetcher.Prefetch);
         }
 
-        private class Prefetcher
+        private sealed class Prefetcher
         {
             private readonly Item item;
             private readonly string filename;
@@ -147,8 +150,8 @@ namespace SonarSource.TfsAnnotate
 
             public void Prefetch(object o)
             {
-                item.DownloadFile(filename);
-                manualResetEvent.Set();
+                this.item.DownloadFile(this.filename);
+                this.manualResetEvent.Set();
             }
         }
     }
