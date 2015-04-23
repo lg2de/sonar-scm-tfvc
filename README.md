@@ -2,4 +2,4 @@
 
 ### Documentation
 
-http://docs.codehaus.org/x/IwDjDg
+http://docs.sonarqube.org/display/SONAR/Jazz+RTC+Plugin
