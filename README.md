@@ -2,4 +2,4 @@
 
 ### Documentation
 
-http://docs.sonarqube.org/display/SONAR/Jazz+RTC+Plugin
+http://docs.sonarqube.org/display/SONAR/TFS+annotate+command+line+tool
