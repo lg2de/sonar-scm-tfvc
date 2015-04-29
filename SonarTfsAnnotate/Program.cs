@@ -34,20 +34,21 @@ namespace SonarSource.TfsAnnotate
                 return 1;
             }
 
-            String path = args[args.Length - 1];
-            if (!File.Exists(path))
+            // FIXME
+            String referencePath = args[0];
+            if (!File.Exists(referencePath))
             {
-                Console.Error.WriteLine("The given file does not exist: " + path);
+                Console.Error.WriteLine("The given file does not exist: " + referencePath);
                 return 2;
             }
 
-            if (!Workstation.Current.IsMapped(path))
+            if (!Workstation.Current.IsMapped(referencePath))
             {
-                Console.Error.WriteLine("The given file is not in a mapped TFS workspace: " + path);
+                Console.Error.WriteLine("The given file is not in a mapped TFS workspace: " + referencePath);
                 return 3;
             }
 
-            WorkspaceInfo workspaceInfo = Workstation.Current.GetLocalWorkspaceInfo(path);
+            WorkspaceInfo workspaceInfo = Workstation.Current.GetLocalWorkspaceInfo(referencePath);
             Uri serverUri = workspaceInfo.ServerUri;
             WorkspaceVersionSpec version = new WorkspaceVersionSpec(workspaceInfo);
             TfsClientCredentials credentials = new TfsClientCredentials(true);
@@ -55,43 +56,46 @@ namespace SonarSource.TfsAnnotate
             {
                 VersionControlServer server = collection.GetService<VersionControlServer>();
 
-                IAnnotatedFile annotatedFile = new FileAnnotator(server).Annotate(path, version);
-                if (annotatedFile == null)
+                foreach (var path in args)
                 {
-                    Console.Error.WriteLine("The given file has not yet been checked-in: " + path);
-                    return 4;
-                }
-
-                if (annotatedFile.IsBinary())
-                {
-                    Console.Error.WriteLine("The given file is a binary one: " + path);
-                    return 5;
-                }
-
-                for (int i = 0; i < annotatedFile.Lines(); i++)
-                {
-                    switch (annotatedFile.State(i))
+                    IAnnotatedFile annotatedFile = new FileAnnotator(server).Annotate(path, version);
+                    if (annotatedFile == null)
                     {
-                        case AnnotationState.UNKNOWN:
-                            Console.Write("unknown ");
-                            break;
-                        case AnnotationState.LOCAL:
-                            Console.Write("local ");
-                            break;
-                        case AnnotationState.COMMITTED:
-                            Changeset changeset = annotatedFile.Changeset(i);
-                            Console.Write(changeset.ChangesetId);
-                            Console.Write(' ');
-                            Console.Write(changeset.Owner);
-                            Console.Write(' ');
-                            Console.Write(changeset.CreationDate.ToString("MM\\/dd\\/yyyy"));
-                            Console.Write(' ');
-                            break;
-                        default:
-                            throw new InvalidOperationException("Unsupported annotation state: " + annotatedFile.State(i));
+                        Console.Error.WriteLine("The given file has not yet been checked-in: " + path);
+                        return 4;
                     }
 
-                    Console.WriteLine(annotatedFile.Data(i));
+                    if (annotatedFile.IsBinary())
+                    {
+                        Console.Error.WriteLine("The given file is a binary one: " + path);
+                        return 5;
+                    }
+
+                    for (int i = 0; i < annotatedFile.Lines(); i++)
+                    {
+                        switch (annotatedFile.State(i))
+                        {
+                            case AnnotationState.UNKNOWN:
+                                Console.Write("unknown ");
+                                break;
+                            case AnnotationState.LOCAL:
+                                Console.Write("local ");
+                                break;
+                            case AnnotationState.COMMITTED:
+                                Changeset changeset = annotatedFile.Changeset(i);
+                                Console.Write(changeset.ChangesetId);
+                                Console.Write(' ');
+                                Console.Write(changeset.Owner);
+                                Console.Write(' ');
+                                Console.Write(changeset.CreationDate.ToString("MM\\/dd\\/yyyy"));
+                                Console.Write(' ');
+                                break;
+                            default:
+                                throw new InvalidOperationException("Unsupported annotation state: " + annotatedFile.State(i));
+                        }
+
+                        Console.WriteLine(annotatedFile.Data(i));
+                    }
                 }
             }
 

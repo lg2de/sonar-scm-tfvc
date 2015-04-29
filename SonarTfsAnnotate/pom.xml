@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.codehaus.sonar-plugins.tfs</groupId>
+    <artifactId>sonar-scm-tfs</artifactId>
+    <version>2.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>SonarTfsAnnotate</artifactId>
+  <packaging>pom</packaging>
+
+  <name>SonarQube :: SCM :: TFS :: Annotate</name>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.3.2</version>
+        <executions>
+          <execution>
+            <id>msbuild-clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${env.MSBUILD_PATH}</executable>
+              <workingDirectory>.</workingDirectory>
+              <arguments>
+                <argument>/property:Configuration=Release</argument>
+                <argument>/target:clean</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>msbuild-build</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${env.MSBUILD_PATH}</executable>
+              <workingDirectory>.</workingDirectory>
+              <arguments>
+                <argument>/property:Configuration=Release</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.5.4</version>
+        <configuration>
+          <descriptor>zip-assembly.xml</descriptor>
+          <appendAssemblyId>false</appendAssemblyId>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
