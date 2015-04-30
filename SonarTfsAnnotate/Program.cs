@@ -35,7 +35,7 @@ namespace SonarSource.TfsAnnotate
 
             if (args.Length != 0)
             {
-                Console.Error.WriteLine("Expected to be called with zero arguments. Pass the files to be annotated on stdin.");
+                Console.Error.WriteLine("This program is only expected to be called by the SonarQube TFS SCM plugin.");
                 return 1;
             }
 
