@@ -22,6 +22,7 @@ package org.sonar.plugins.scm.tfs;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
@@ -37,11 +38,22 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TfsBlameCommand extends BlameCommand {
 
   private static final Logger LOG = LoggerFactory.getLogger(TfsBlameCommand.class);
+  private static final Pattern LINE_PATTERN = Pattern.compile("([^ ]+)[ ]+([^ ]+)[ ]+([^ ]+)");
+  private static final String TIMESTAMP_PATTERN = "MM/dd/yyyy";
+
+  private final DateFormat format = new SimpleDateFormat(TIMESTAMP_PATTERN);
   private final File executable;
 
   public TfsBlameCommand(TempFolder temp) {
@@ -55,41 +67,72 @@ public class TfsBlameCommand extends BlameCommand {
 
   @Override
   public void blame(BlameInput input, BlameOutput output) {
-    for (InputFile inputFile : input.filesToBlame()) {
-      Process process = null;
-      try {
-        LOG.debug("Executing the TFS blame command: " + executable.getAbsolutePath() + " " + inputFile.absolutePath());
-        process = new ProcessBuilder(executable.getAbsolutePath(), inputFile.absolutePath()).start();
+    Process process = null;
+    try {
+      LOG.debug("Executing the TFS blame command: " + executable.getAbsolutePath());
+      process = new ProcessBuilder(executable.getAbsolutePath()).start();
 
-        OutputStreamWriter stdin = new OutputStreamWriter(process.getOutputStream(), Charsets.UTF_8);
-        stdin.close();
+      OutputStreamWriter stdin = new OutputStreamWriter(process.getOutputStream(), Charsets.UTF_8);
+      BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream(), Charsets.UTF_8));
 
-        BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream(), Charsets.UTF_8));
-        TfsBlameConsumer consumer = new TfsBlameConsumer(inputFile.relativePath());
-        consumer.process(stdout);
+      for (InputFile inputFile : input.filesToBlame()) {
+        stdin.write(inputFile.absolutePath() + "\r\n");
+        stdin.flush();
 
-        int exitCode = process.waitFor();
-        if (exitCode != 0) {
-          throw new IllegalStateException("The TFS blame command " + executable.getAbsolutePath() + " " + inputFile.absolutePath() + " failed with exit code " + exitCode);
+        String path = stdout.readLine();
+        if (!inputFile.absolutePath().equals(path)) {
+          throw new IllegalStateException("Expected the file paths to match: " + inputFile.absolutePath() + " and " + path);
         }
 
-        List<BlameLine> lines = consumer.getLines();
-        if (lines.size() == inputFile.lines() - 1) {
+        String linesAsString = stdout.readLine();
+        if (linesAsString == null) {
+          break;
+        }
+        int lines = Integer.parseInt(linesAsString, 10);
+
+        List<BlameLine> result = Lists.newArrayList();
+        for (int i = 0; i < lines; i++) {
+          String line = stdout.readLine();
+
+          if (line.startsWith("local") || line.startsWith("unknow")) {
+            throw new IllegalStateException("Unable to blame file " + inputFile.relativePath() + ". No blame info at line " + (i + 1) + ". Is file commited?\n [" + line + "]");
+          }
+
+          Matcher matcher = LINE_PATTERN.matcher(line);
+          if (matcher.find()) {
+            String revision = matcher.group(1).trim();
+            String author = matcher.group(2).trim();
+            String dateStr = matcher.group(3).trim();
+
+            Date date = parseDate(dateStr);
+
+            result.add(new BlameLine().date(date).revision(revision).author(author));
+          }
+        }
+
+        if (result.size() == inputFile.lines() - 1) {
           // SONARPLUGINS-3097 TFS do not report blame on last empty line
-          lines.add(lines.get(lines.size() - 1));
+          result.add(result.get(result.size() - 1));
         }
 
-        output.blameResult(inputFile, consumer.getLines());
-      } catch (IOException e) {
-        throw Throwables.propagate(e);
-      } catch (InterruptedException e) {
-        throw Throwables.propagate(e);
-      } finally {
-        if (process != null) {
-          Closeables.closeQuietly(process.getInputStream());
-          Closeables.closeQuietly(process.getOutputStream());
-          Closeables.closeQuietly(process.getErrorStream());
-        }
+        output.blameResult(inputFile, result);
+      }
+
+      stdin.close();
+
+      int exitCode = process.waitFor();
+      if (exitCode != 0) {
+        throw new IllegalStateException("The TFS blame command " + executable.getAbsolutePath() + " failed with exit code " + exitCode);
+      }
+    } catch (IOException e) {
+      throw Throwables.propagate(e);
+    } catch (InterruptedException e) {
+      throw Throwables.propagate(e);
+    } finally {
+      if (process != null) {
+        Closeables.closeQuietly(process.getInputStream());
+        Closeables.closeQuietly(process.getOutputStream());
+        Closeables.closeQuietly(process.getErrorStream());
       }
     }
   }
@@ -102,6 +145,17 @@ public class TfsBlameCommand extends BlameCommand {
       throw new IllegalStateException("Unable to extract SonarTfsAnnotate.exe", e);
     }
     return executable;
+  }
+
+  private Date parseDate(String date) {
+    try {
+      return format.parse(date);
+    } catch (ParseException e) {
+      LOG.warn(
+        "skip ParseException: " + e.getMessage() + " during parsing date " + date
+          + " with pattern " + TIMESTAMP_PATTERN + " with Locale " + Locale.ENGLISH, e);
+      return null;
+    }
   }
 
 }

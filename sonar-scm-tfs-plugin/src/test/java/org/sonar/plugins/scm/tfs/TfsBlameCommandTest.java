@@ -19,7 +19,6 @@
  */
 package org.sonar.plugins.scm.tfs;
 
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -43,16 +42,11 @@ public class TfsBlameCommandTest {
   @Rule
   public ExpectedException thrown = ExpectedException.none();
 
-  private final File executable = new File("src/test/resources/type.bat");
-  private TfsBlameCommand command;
-
-  @Before
-  public void init() {
-    command = new TfsBlameCommand(executable);
-  }
-
   @Test
   public void ok() throws IOException {
+    File executable = new File("src/test/resources/fake.bat");
+    TfsBlameCommand command = new TfsBlameCommand(executable);
+
     File file = new File("src/test/resources/ok.txt");
     DefaultInputFile inputFile = new DefaultInputFile("ok", "ok.txt").setAbsolutePath(file.getAbsolutePath());
 
@@ -72,6 +66,9 @@ public class TfsBlameCommandTest {
 
   @Test
   public void should_annotate_last_empty_line() {
+    File executable = new File("src/test/resources/fake.bat");
+    TfsBlameCommand command = new TfsBlameCommand(executable);
+
     File file = new File("src/test/resources/ok.txt");
     DefaultInputFile inputFile = new DefaultInputFile("ok", "ok.txt").setAbsolutePath(file.getAbsolutePath());
     inputFile.setLines(3);
@@ -93,6 +90,9 @@ public class TfsBlameCommandTest {
 
   @Test
   public void should_fail_with_local_change() {
+    File executable = new File("src/test/resources/fake.bat");
+    TfsBlameCommand command = new TfsBlameCommand(executable);
+
     File file = new File("src/test/resources/ko_local_change.txt");
     DefaultInputFile inputFile = new DefaultInputFile("ko_local_change", "ko_local_change.txt").setAbsolutePath(file.getAbsolutePath());
 
@@ -107,12 +107,14 @@ public class TfsBlameCommandTest {
 
   @Test
   public void file_not_found_error() {
+    File executable = new File("src/test/resources/fake.bat");
+    TfsBlameCommand command = new TfsBlameCommand(executable);
+
     File file = new File("src/test/resources/ko_non_existing.txt");
     DefaultInputFile inputFile = new DefaultInputFile("ko_non_existing", "ko_non_existing.txt").setAbsolutePath(file.getAbsolutePath());
 
     thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("The TFS blame command " + executable.getAbsolutePath());
-    thrown.expectMessage("ko_non_existing.txt failed with exit code 1");
+    thrown.expectMessage("The TFS blame command " + executable.getAbsolutePath() + " failed with exit code 1");
 
     BlameInput input = mock(BlameInput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
