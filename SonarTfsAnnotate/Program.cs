@@ -109,6 +109,8 @@ namespace SonarSource.TfsAnnotate
 
                     Console.WriteLine(annotatedFile.Data(i));
                 }
+
+                Console.Out.Flush();
             }
 
             foreach (var server in serversCache.Values)
