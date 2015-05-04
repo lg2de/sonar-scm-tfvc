@@ -38,22 +38,16 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TfsBlameCommand extends BlameCommand {
 
   private static final Logger LOG = LoggerFactory.getLogger(TfsBlameCommand.class);
-  private static final Pattern LINE_PATTERN = Pattern.compile("([^ ]+)[ ]+([^ ]+)[ ]+([^ ]+)");
-  private static final String TIMESTAMP_PATTERN = "MM/dd/yyyy";
+  private static final Pattern LINE_PATTERN = Pattern.compile("([^ ]+) ([^ ]+) ([^ ]+)");
 
-  private final DateFormat format = new SimpleDateFormat(TIMESTAMP_PATTERN);
   private final File executable;
 
   public TfsBlameCommand(TempFolder temp) {
@@ -94,17 +88,17 @@ public class TfsBlameCommand extends BlameCommand {
         for (int i = 0; i < lines; i++) {
           String line = stdout.readLine();
 
-          if (line.startsWith("local") || line.startsWith("unknow")) {
+          if (line.startsWith("local") || line.startsWith("unknown")) {
             throw new IllegalStateException("Unable to blame file " + inputFile.relativePath() + ". No blame info at line " + (i + 1) + ". Is file commited?\n [" + line + "]");
           }
 
           Matcher matcher = LINE_PATTERN.matcher(line);
-          if (matcher.find()) {
+          if (matcher.find(0)) {
             String revision = matcher.group(1).trim();
             String author = matcher.group(2).trim();
             String dateStr = matcher.group(3).trim();
 
-            Date date = parseDate(dateStr);
+            Date date = new Date(Long.parseLong(dateStr, 10));
 
             result.add(new BlameLine().date(date).revision(revision).author(author));
           }
@@ -145,17 +139,6 @@ public class TfsBlameCommand extends BlameCommand {
       throw new IllegalStateException("Unable to extract SonarTfsAnnotate.exe", e);
     }
     return executable;
-  }
-
-  private Date parseDate(String date) {
-    try {
-      return format.parse(date);
-    } catch (ParseException e) {
-      LOG.warn(
-        "skip ParseException: " + e.getMessage() + " during parsing date " + date
-          + " with pattern " + TIMESTAMP_PATTERN + " with Locale " + Locale.ENGLISH, e);
-      return null;
-    }
   }
 
 }

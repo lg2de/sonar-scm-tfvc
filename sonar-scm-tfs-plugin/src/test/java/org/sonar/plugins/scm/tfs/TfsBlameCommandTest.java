@@ -27,11 +27,11 @@ import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.scm.BlameCommand.BlameInput;
 import org.sonar.api.batch.scm.BlameCommand.BlameOutput;
 import org.sonar.api.batch.scm.BlameLine;
-import org.sonar.api.utils.DateUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Date;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -60,8 +60,8 @@ public class TfsBlameCommandTest {
     verify(output).blameResult(
       inputFile,
       Arrays.asList(
-        new BlameLine().date(DateUtils.parseDate("2014-07-10")).revision("26274").author("SND\\DinSoft_cp"),
-        new BlameLine().date(DateUtils.parseDate("2014-07-10")).revision("26275").author("SND\\DinSoft_cp")));
+        new BlameLine().date(new Date(1430736199000L)).revision("26274").author("SND\\DinSoft_cp"),
+        new BlameLine().date(new Date(1430736200000L)).revision("26275").author("SND\\DinSoft_cp")));
   }
 
   @Test
@@ -83,9 +83,9 @@ public class TfsBlameCommandTest {
     verify(output).blameResult(
       inputFile,
       Arrays.asList(
-        new BlameLine().date(DateUtils.parseDate("2014-07-10")).revision("26274").author("SND\\DinSoft_cp"),
-        new BlameLine().date(DateUtils.parseDate("2014-07-10")).revision("26275").author("SND\\DinSoft_cp"),
-        new BlameLine().date(DateUtils.parseDate("2014-07-10")).revision("26275").author("SND\\DinSoft_cp")));
+        new BlameLine().date(new Date(1430736199000L)).revision("26274").author("SND\\DinSoft_cp"),
+        new BlameLine().date(new Date(1430736200000L)).revision("26275").author("SND\\DinSoft_cp"),
+        new BlameLine().date(new Date(1430736200000L)).revision("26275").author("SND\\DinSoft_cp")));
   }
 
   @Test

@@ -30,6 +30,8 @@ namespace SonarSource.TfsAnnotate
 {
     class Program
     {
+        private static readonly DateTime Epoch = new DateTime(1970, 1, 1);
+
         static int Main(string[] args)
         {
             Console.InputEncoding = Encoding.UTF8;
@@ -94,7 +96,7 @@ namespace SonarSource.TfsAnnotate
                                 Console.Write(' ');
                                 Console.Write(cache.GetEmailOrAccountName(serverUri, changeset.Owner));
                                 Console.Write(' ');
-                                Console.Write(changeset.CreationDate.ToString("MM\\/dd\\/yyyy"));
+                                Console.Write(ToUnixTimestampInMs(changeset.CreationDate));
                                 Console.Write(' ');
                                 break;
                             default:
@@ -109,6 +111,12 @@ namespace SonarSource.TfsAnnotate
             }
 
             return 0;
+        }
+
+        private static long ToUnixTimestampInMs(DateTime dateTime)
+        {
+            var timespan = dateTime - Epoch;
+            return Convert.ToInt64(timespan.TotalMilliseconds);
         }
     }
 }
