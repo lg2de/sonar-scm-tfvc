@@ -45,7 +45,7 @@ namespace SonarSource.TfsAnnotate
 
         public string GetEmailOrAccountName(Uri serverUri, string accountName)
         {
-            if (accountName.Contains('@'))
+            if (IsEmail(accountName))
             {
                 // Visual Studio Online accounts are already email addresses
                 return accountName;
@@ -65,12 +65,12 @@ namespace SonarSource.TfsAnnotate
                 else
                 {
                     // ConfirmedNotificationAddress is set on the TFS profile itself
-                    result = identity.GetAttribute("ConfirmedNotificationAddress", accountName);
-                    if (!result.Contains('@'))
+                    result = identity.GetAttribute("ConfirmedNotificationAddress", string.Empty);
+                    if (!IsEmail(result))
                     {
                         // Mail is supposedly fethed from AD
                         result = identity.GetAttribute("Mail", accountName);
-                        if (!result.Contains('@'))
+                        if (!IsEmail(result))
                         {
                             // Codeplex might return non-valid email addresses
                             result = accountName;
@@ -82,6 +82,11 @@ namespace SonarSource.TfsAnnotate
             }
 
             return result;
+        }
+
+        private static bool IsEmail(string email)
+        {
+            return email.Contains('@');
         }
 
         public void Dispose()
