@@ -46,7 +46,7 @@ import java.util.regex.Pattern;
 public class TfsBlameCommand extends BlameCommand {
 
   private static final Logger LOG = LoggerFactory.getLogger(TfsBlameCommand.class);
-  private static final Pattern LINE_PATTERN = Pattern.compile("([^ ]+) ([^ ]+) ([^ ]+)");
+  private static final Pattern LINE_PATTERN = Pattern.compile("([^ ]++) ([^ ]++) ([^ ]++)");
 
   private final File executable;
 
@@ -93,7 +93,7 @@ public class TfsBlameCommand extends BlameCommand {
           }
 
           Matcher matcher = LINE_PATTERN.matcher(line);
-          if (matcher.find(0)) {
+          if (matcher.find()) {
             String revision = matcher.group(1).trim();
             String author = matcher.group(2).trim();
             String dateStr = matcher.group(3).trim();
