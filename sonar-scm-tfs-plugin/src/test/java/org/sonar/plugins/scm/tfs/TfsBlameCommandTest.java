@@ -22,6 +22,7 @@ package org.sonar.plugins.scm.tfs;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.scm.BlameCommand.BlameInput;
@@ -89,15 +90,34 @@ public class TfsBlameCommandTest {
   }
 
   @Test
-  public void should_fail_with_local_change() {
+  public void should_not_save_info_when_0_lines_returned() throws IOException {
     File executable = new File("src/test/resources/fake.bat");
     TfsBlameCommand command = new TfsBlameCommand(executable);
 
-    File file = new File("src/test/resources/ko_local_change.txt");
-    DefaultInputFile inputFile = new DefaultInputFile("ko_local_change", "ko_local_change.txt").setAbsolutePath(file.getAbsolutePath());
+    File file = new File("src/test/resources/ko_0_lines.txt");
+    DefaultInputFile inputFile = new DefaultInputFile("ko_0_lines", "ko_0_lines.txt").setAbsolutePath(file.getAbsolutePath());
+
+    BlameInput input = mock(BlameInput.class);
+    when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
+
+    BlameOutput output = mock(BlameOutput.class);
+
+    command.blame(input, output);
+
+    verify(output, Mockito.never()).blameResult(Mockito.any(InputFile.class), Mockito.anyList());
+  }
+
+  @Test
+  public void should_fail_on_invalid_output() {
+    File executable = new File("src/test/resources/fake.bat");
+    TfsBlameCommand command = new TfsBlameCommand(executable);
+
+    File file = new File("src/test/resources/invalid_output.txt");
+    DefaultInputFile inputFile = new DefaultInputFile("invalid_output", "invalid_output.txt").setAbsolutePath(file.getAbsolutePath());
 
     thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("Unable to blame file ko_local_change.txt. No blame info at line 2. Is file commited?");
+    thrown.expectMessage("Invalid output from the TFS annotate command: \"hello world!\" on file:");
+    thrown.expectMessage("at line 1");
 
     BlameInput input = mock(BlameInput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));

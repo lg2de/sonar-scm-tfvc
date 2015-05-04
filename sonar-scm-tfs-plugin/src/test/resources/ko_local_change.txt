@@ -1,4 +1,0 @@
-3
-26274 SND\DinSoft_cp 1430736199000 hello,
-local I need to check this line in.
-26274 SND\DinSoft_cp 1430736199000 world!

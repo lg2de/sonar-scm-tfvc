@@ -48,16 +48,19 @@ namespace SonarSource.TfsAnnotate
                 string path;
                 while ((path = Console.ReadLine()) != null)
                 {
+                    Console.Out.Flush();
+                    Console.WriteLine(path);
+
                     if (!File.Exists(path))
                     {
-                        Console.Error.WriteLine("The given file does not exist: " + path);
-                        return 2;
+                        FailOnFile("does not exist: " + path);
+                        continue;
                     }
 
                     if (!Workstation.Current.IsMapped(path))
                     {
-                        Console.Error.WriteLine("The given file is not in a mapped TFS workspace: " + path);
-                        return 3;
+                        FailOnFile("is not in a mapped TFS workspace: " + path);
+                        continue;
                     }
 
                     WorkspaceInfo workspaceInfo = Workstation.Current.GetLocalWorkspaceInfo(path);
@@ -68,46 +71,45 @@ namespace SonarSource.TfsAnnotate
                     IAnnotatedFile annotatedFile = new FileAnnotator(versionControlServer).Annotate(path, version);
                     if (annotatedFile == null)
                     {
-                        Console.Error.WriteLine("The given file has not yet been checked-in: " + path);
-                        return 4;
+                        FailOnFile("is not yet checked-in: " + path);
+                        continue;
                     }
 
                     if (annotatedFile.IsBinary())
                     {
-                        Console.Error.WriteLine("The given file is a binary one: " + path);
-                        return 5;
+                        FailOnFile("is a binary one: " + path);
+                        continue;
                     }
 
-                    Console.WriteLine(path);
+                    bool failed = false;
+                    for (int i = 0; !failed && i < annotatedFile.Lines(); i++)
+                    {
+                        var state = annotatedFile.State(i);
+                        if (state != AnnotationState.COMMITTED)
+                        {
+                            FailOnFile("line " + (i + 1) + " has not yet been checked-in (" + state + "): " + path);
+                            failed = true;
+                        }
+                    }
+                    if (failed)
+                    {
+                        continue;
+                    }
+
                     Console.WriteLine(annotatedFile.Lines());
                     for (int i = 0; i < annotatedFile.Lines(); i++)
                     {
-                        switch (annotatedFile.State(i))
-                        {
-                            case AnnotationState.UNKNOWN:
-                                Console.Write("unknown ");
-                                break;
-                            case AnnotationState.LOCAL:
-                                Console.Write("local ");
-                                break;
-                            case AnnotationState.COMMITTED:
-                                Changeset changeset = annotatedFile.Changeset(i);
-                                Console.Write(changeset.ChangesetId);
-                                Console.Write(' ');
-                                Console.Write(cache.GetEmailOrAccountName(serverUri, changeset.Owner));
-                                Console.Write(' ');
-                                Console.Write(ToUnixTimestampInMs(changeset.CreationDate));
-                                Console.Write(' ');
-                                break;
-                            default:
-                                throw new InvalidOperationException("Unsupported annotation state: " + annotatedFile.State(i));
-                        }
-
+                        Changeset changeset = annotatedFile.Changeset(i);
+                        Console.Write(changeset.ChangesetId);
+                        Console.Write(' ');
+                        Console.Write(cache.GetEmailOrAccountName(serverUri, changeset.Owner));
+                        Console.Write(' ');
+                        Console.Write(ToUnixTimestampInMs(changeset.CreationDate));
+                        Console.Write(' ');
                         Console.WriteLine(annotatedFile.Data(i));
                     }
-
-                    Console.Out.Flush();
                 }
+                Console.Out.Flush();
             }
 
             return 0;
@@ -117,6 +119,13 @@ namespace SonarSource.TfsAnnotate
         {
             var timespan = dateTime - Epoch;
             return Convert.ToInt64(timespan.TotalMilliseconds);
+        }
+
+        private static void FailOnFile(string reason)
+        {
+            Console.WriteLine("0");
+            Console.Write("Unable to TFS annotate the following file which ");
+            Console.WriteLine(reason);
         }
     }
 }

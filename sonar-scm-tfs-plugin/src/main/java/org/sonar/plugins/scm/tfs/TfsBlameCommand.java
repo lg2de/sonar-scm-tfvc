@@ -70,6 +70,8 @@ public class TfsBlameCommand extends BlameCommand {
       BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream(), Charsets.UTF_8));
 
       for (InputFile inputFile : input.filesToBlame()) {
+        LOG.debug("TFS annotating: " + inputFile.absolutePath());
+
         stdin.write(inputFile.absolutePath() + "\r\n");
         stdin.flush();
 
@@ -84,24 +86,28 @@ public class TfsBlameCommand extends BlameCommand {
         }
         int lines = Integer.parseInt(linesAsString, 10);
 
+        if (lines == 0) {
+          String reason = stdout.readLine();
+          LOG.info(reason);
+          continue;
+        }
+
         List<BlameLine> result = Lists.newArrayList();
         for (int i = 0; i < lines; i++) {
           String line = stdout.readLine();
 
-          if (line.startsWith("local") || line.startsWith("unknown")) {
-            throw new IllegalStateException("Unable to blame file " + inputFile.relativePath() + ". No blame info at line " + (i + 1) + ". Is file commited?\n [" + line + "]");
-          }
-
           Matcher matcher = LINE_PATTERN.matcher(line);
-          if (matcher.find()) {
-            String revision = matcher.group(1).trim();
-            String author = matcher.group(2).trim();
-            String dateStr = matcher.group(3).trim();
-
-            Date date = new Date(Long.parseLong(dateStr, 10));
-
-            result.add(new BlameLine().date(date).revision(revision).author(author));
+          if (!matcher.find()) {
+            throw new IllegalStateException("Invalid output from the TFS annotate command: \"" + line + "\" on file: " + path + " at line " + (i + 1));
           }
+
+          String revision = matcher.group(1).trim();
+          String author = matcher.group(2).trim();
+          String dateStr = matcher.group(3).trim();
+
+          Date date = new Date(Long.parseLong(dateStr, 10));
+
+          result.add(new BlameLine().date(date).revision(revision).author(author));
         }
 
         if (result.size() == inputFile.lines() - 1) {
