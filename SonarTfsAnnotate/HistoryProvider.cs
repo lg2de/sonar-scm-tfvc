@@ -29,17 +29,14 @@ namespace SonarSource.TfsAnnotate
     {
         private const int PREFETCH_SIZE = 10;
 
-        private readonly VersionControlServer server;
-        private List<Changeset> changesets = new List<Changeset>();
-        private List<string> filenames = new List<string>();
-        private List<ManualResetEvent> manualResetEvents = new List<ManualResetEvent>();
+        private readonly List<Changeset> changesets = new List<Changeset>();
+        private readonly List<string> filenames = new List<string>();
+        private readonly List<ManualResetEvent> manualResetEvents = new List<ManualResetEvent>();
 
         private int current = -1;
 
         public HistoryProvider(VersionControlServer server, IEnumerable<Changeset> changesets)
         {
-            this.server = server;
-            
             foreach (Changeset changeset in changesets)
             {
                 if (changeset.Changes.Length != 1)
@@ -48,8 +45,8 @@ namespace SonarSource.TfsAnnotate
                 }
 
                 this.changesets.Add(changeset);
-                this.filenames.Add(null);
-                this.manualResetEvents.Add(null);
+                filenames.Add(null);
+                manualResetEvents.Add(null);
             }
 
             for (int i = 0; i < PREFETCH_SIZE && i < this.changesets.Count; i++)
@@ -129,7 +126,7 @@ namespace SonarSource.TfsAnnotate
             ThreadPool.QueueUserWorkItem(prefetcher.Prefetch);
         }
 
-        private class Prefetcher
+        private sealed class Prefetcher
         {
             private readonly Item item;
             private readonly string filename;

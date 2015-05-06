@@ -19,12 +19,9 @@
  */
 using System;
 using System.IO;
-using System.Collections.Generic;
 using System.Text;
 using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.VersionControl.Client;
-using Microsoft.TeamFoundation.Framework.Client;
-using Microsoft.TeamFoundation.Framework.Common;
 using System.Net;
 
 namespace SonarSource.TfsAnnotate

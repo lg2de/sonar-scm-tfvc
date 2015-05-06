@@ -37,8 +37,10 @@ namespace SonarSource.TfsAnnotate
 
         public IAnnotatedFile Annotate(string path, VersionSpec version)
         {
-            var options = new DiffOptions();
-            options.Flags = DiffOptionFlags.EnablePreambleHandling | DiffOptionFlags.IgnoreLeadingAndTrailingWhiteSpace | DiffOptionFlags.IgnoreEndOfLineDifference;
+            var options = new DiffOptions()
+            {
+                Flags = DiffOptionFlags.EnablePreambleHandling | DiffOptionFlags.IgnoreLeadingAndTrailingWhiteSpace | DiffOptionFlags.IgnoreEndOfLineDifference
+            };
 
             PendingChange[] pendingChanges = server.GetWorkspace(path).GetPendingChanges(path);
             if (pendingChanges.Length >= 2)
@@ -135,7 +137,7 @@ namespace SonarSource.TfsAnnotate
             return result;
         }
 
-        private class AnnotatedFile : IAnnotatedFile
+        private sealed class AnnotatedFile : IAnnotatedFile
         {
             private const int UNKNOWN = -1;
             private const int LOCAL = 0;
