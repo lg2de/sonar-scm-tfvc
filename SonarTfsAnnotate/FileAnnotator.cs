@@ -38,7 +38,7 @@ namespace SonarSource.TfsAnnotate
         public IAnnotatedFile Annotate(string path, VersionSpec version)
         {
             var options = new DiffOptions();
-            options.Flags = DiffOptionFlags.EnablePreambleHandling;
+            options.Flags = DiffOptionFlags.EnablePreambleHandling | DiffOptionFlags.IgnoreLeadingAndTrailingWhiteSpace | DiffOptionFlags.IgnoreEndOfLineDifference;
 
             PendingChange[] pendingChanges = server.GetWorkspace(path).GetPendingChanges(path);
             if (pendingChanges.Length >= 2)
