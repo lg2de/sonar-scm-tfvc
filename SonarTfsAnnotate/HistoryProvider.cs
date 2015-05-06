@@ -47,12 +47,9 @@ namespace SonarSource.TfsAnnotate
                     throw new InvalidOperationException("Expected exactly 1 change, but got " + changeset.Changes.Length + " for ChangesetId " + changeset.ChangesetId);
                 }
 
-                if ((changeset.Changes[0].ChangeType & ChangeType.Edit) != 0)
-                {
-                    this.changesets.Add(changeset);
-                    this.filenames.Add(null);
-                    this.manualResetEvents.Add(null);
-                }
+                this.changesets.Add(changeset);
+                this.filenames.Add(null);
+                this.manualResetEvents.Add(null);
             }
 
             for (int i = 0; i < PREFETCH_SIZE && i < this.changesets.Count; i++)
