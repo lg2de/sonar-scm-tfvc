@@ -27,6 +27,7 @@ public class TfsPluginTest {
 
   @Test
   public void getExtensions() {
-    assertThat(new TfsPlugin().getExtensions()).hasSize(2);
+    assertThat(new TfsPlugin().getExtensions()).hasSize(3 + TfsConfiguration.getProperties().size());
   }
+
 }

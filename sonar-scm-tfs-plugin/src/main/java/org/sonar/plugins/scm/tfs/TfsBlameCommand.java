@@ -48,14 +48,16 @@ public class TfsBlameCommand extends BlameCommand {
   private static final Logger LOG = LoggerFactory.getLogger(TfsBlameCommand.class);
   private static final Pattern LINE_PATTERN = Pattern.compile("([^ ]++) ([^ ]++) ([^ ]++)");
 
+  private final TfsConfiguration conf;
   private final File executable;
 
-  public TfsBlameCommand(TempFolder temp) {
-    this(extractExecutable(temp));
+  public TfsBlameCommand(TfsConfiguration conf, TempFolder temp) {
+    this(conf, extractExecutable(temp));
   }
 
   @VisibleForTesting
-  public TfsBlameCommand(File executable) {
+  public TfsBlameCommand(TfsConfiguration conf, File executable) {
+    this.conf = conf;
     this.executable = executable;
   }
 
@@ -68,6 +70,12 @@ public class TfsBlameCommand extends BlameCommand {
 
       OutputStreamWriter stdin = new OutputStreamWriter(process.getOutputStream(), Charsets.UTF_8);
       BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream(), Charsets.UTF_8));
+
+      stdout.readLine();
+      stdin.write(conf.username() + "\r\n");
+      stdin.write(conf.password() + "\r\n");
+      stdin.flush();
+      stdout.readLine();
 
       for (InputFile inputFile : input.filesToBlame()) {
         LOG.debug("TFS annotating: " + inputFile.absolutePath());

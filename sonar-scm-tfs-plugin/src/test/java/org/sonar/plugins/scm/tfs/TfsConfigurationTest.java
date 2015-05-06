@@ -19,25 +19,27 @@
  */
 package org.sonar.plugins.scm.tfs;
 
-import com.google.common.collect.ImmutableList;
-import org.sonar.api.SonarPlugin;
+import org.junit.Test;
+import org.sonar.api.config.PropertyDefinitions;
+import org.sonar.api.config.Settings;
 
-import java.util.List;
+import static org.fest.assertions.Assertions.assertThat;
 
-public class TfsPlugin extends SonarPlugin {
+public class TfsConfigurationTest {
 
-  @Override
-  public List getExtensions() {
-    ImmutableList.Builder builder = ImmutableList.builder();
+  @Test
+  public void sanityCheck() {
+    Settings settings = new Settings(new PropertyDefinitions(TfsConfiguration.getProperties()));
+    TfsConfiguration config = new TfsConfiguration(settings);
 
-    builder.add(
-      TfsScmProvider.class,
-      TfsBlameCommand.class,
-      TfsConfiguration.class);
+    assertThat(config.username()).isEmpty();
+    assertThat(config.password()).isEmpty();
 
-    builder.addAll(TfsConfiguration.getProperties());
+    settings.setProperty("sonar.tfs.username", "foo");
+    assertThat(config.username()).isEqualTo("foo");
 
-    return builder.build();
+    settings.setProperty("sonar.tfs.password.secured", "pwd");
+    assertThat(config.password()).isEqualTo("pwd");
   }
 
 }

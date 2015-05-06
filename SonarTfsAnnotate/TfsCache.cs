@@ -5,6 +5,7 @@ using Microsoft.TeamFoundation.VersionControl.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -27,10 +28,16 @@ namespace SonarSource.TfsAnnotate
             if (!teamCollectionCache.TryGetValue(serverUri, out result))
             {
                 result = new TfsTeamProjectCollection(serverUri, credentials);
+                result.EnsureAuthenticated();
                 teamCollectionCache[serverUri] = result;
             }
 
             return result;
+        }
+
+        public void EnsureAuthenticated(Uri serverUri)
+        {
+            GetTeamProjectCollection(serverUri).EnsureAuthenticated();
         }
 
         public VersionControlServer GetVersionControlServer(Uri serverUri)

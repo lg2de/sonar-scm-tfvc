@@ -43,10 +43,12 @@ public class TfsBlameCommandTest {
   @Rule
   public ExpectedException thrown = ExpectedException.none();
 
+  private final TfsConfiguration conf = mock(TfsConfiguration.class);
+
   @Test
   public void ok() throws IOException {
     File executable = new File("src/test/resources/fake.bat");
-    TfsBlameCommand command = new TfsBlameCommand(executable);
+    TfsBlameCommand command = new TfsBlameCommand(conf, executable);
 
     File file = new File("src/test/resources/ok.txt");
     DefaultInputFile inputFile = new DefaultInputFile("ok", "ok.txt").setAbsolutePath(file.getAbsolutePath());
@@ -68,7 +70,7 @@ public class TfsBlameCommandTest {
   @Test
   public void should_annotate_last_empty_line() {
     File executable = new File("src/test/resources/fake.bat");
-    TfsBlameCommand command = new TfsBlameCommand(executable);
+    TfsBlameCommand command = new TfsBlameCommand(conf, executable);
 
     File file = new File("src/test/resources/ok.txt");
     DefaultInputFile inputFile = new DefaultInputFile("ok", "ok.txt").setAbsolutePath(file.getAbsolutePath());
@@ -92,7 +94,7 @@ public class TfsBlameCommandTest {
   @Test
   public void should_not_save_info_when_0_lines_returned() throws IOException {
     File executable = new File("src/test/resources/fake.bat");
-    TfsBlameCommand command = new TfsBlameCommand(executable);
+    TfsBlameCommand command = new TfsBlameCommand(conf, executable);
 
     File file = new File("src/test/resources/ko_0_lines.txt");
     DefaultInputFile inputFile = new DefaultInputFile("ko_0_lines", "ko_0_lines.txt").setAbsolutePath(file.getAbsolutePath());
@@ -110,7 +112,7 @@ public class TfsBlameCommandTest {
   @Test
   public void should_fail_on_invalid_output() {
     File executable = new File("src/test/resources/fake.bat");
-    TfsBlameCommand command = new TfsBlameCommand(executable);
+    TfsBlameCommand command = new TfsBlameCommand(conf, executable);
 
     File file = new File("src/test/resources/invalid_output.txt");
     DefaultInputFile inputFile = new DefaultInputFile("invalid_output", "invalid_output.txt").setAbsolutePath(file.getAbsolutePath());
@@ -128,7 +130,7 @@ public class TfsBlameCommandTest {
   @Test
   public void file_not_found_error() {
     File executable = new File("src/test/resources/fake.bat");
-    TfsBlameCommand command = new TfsBlameCommand(executable);
+    TfsBlameCommand command = new TfsBlameCommand(conf, executable);
 
     File file = new File("src/test/resources/ko_non_existing.txt");
     DefaultInputFile inputFile = new DefaultInputFile("ko_non_existing", "ko_non_existing.txt").setAbsolutePath(file.getAbsolutePath());

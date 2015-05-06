@@ -25,6 +25,7 @@ using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.VersionControl.Client;
 using Microsoft.TeamFoundation.Framework.Client;
 using Microsoft.TeamFoundation.Framework.Common;
+using System.Net;
 
 namespace SonarSource.TfsAnnotate
 {
@@ -43,8 +44,26 @@ namespace SonarSource.TfsAnnotate
                 return 1;
             }
 
-            using (var cache = new TfsCache(new TfsClientCredentials(true)))
+            Console.WriteLine("Enter your credentials");
+            Console.Out.Flush();
+            var username = Console.ReadLine();
+            var password = Console.ReadLine();
+
+            TfsClientCredentials credentials;
+            if (!String.IsNullOrEmpty(username) || !String.IsNullOrEmpty(password))
             {
+                credentials = new TfsClientCredentials(new WindowsCredential(new NetworkCredential(username, password)));
+            }
+            else
+            {
+                credentials = new TfsClientCredentials(true);
+            }
+            credentials.AllowInteractive = false;
+            using (var cache = new TfsCache(credentials))
+            {
+                Console.Out.WriteLine("Enter the paths to annotate");
+                Console.Out.Flush();
+
                 string path;
                 while ((path = Console.ReadLine()) != null)
                 {
@@ -66,6 +85,17 @@ namespace SonarSource.TfsAnnotate
                     WorkspaceInfo workspaceInfo = Workstation.Current.GetLocalWorkspaceInfo(path);
                     Uri serverUri = workspaceInfo.ServerUri;
                     WorkspaceVersionSpec version = new WorkspaceVersionSpec(workspaceInfo);
+
+                    try
+                    {
+                        cache.EnsureAuthenticated(serverUri);
+                    }
+                    catch (Exception e)
+                    {
+                        FailOnFile("raised the following authentication exception: " + path + ", " + e.Message);
+                        return 1;
+                    }
+
                     var versionControlServer = cache.GetVersionControlServer(serverUri);
 
                     IAnnotatedFile annotatedFile = new FileAnnotator(versionControlServer).Annotate(path, version);
