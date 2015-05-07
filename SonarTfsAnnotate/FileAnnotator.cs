@@ -37,7 +37,7 @@ namespace SonarSource.TfsAnnotate
 
         public IAnnotatedFile Annotate(string path, VersionSpec version)
         {
-            var options = new DiffOptions()
+            var options = new DiffOptions
             {
                 Flags = DiffOptionFlags.EnablePreambleHandling | DiffOptionFlags.IgnoreLeadingAndTrailingWhiteSpace | DiffOptionFlags.IgnoreEndOfLineDifference
             };
@@ -72,7 +72,7 @@ namespace SonarSource.TfsAnnotate
             }
 
             var history = server.QueryHistory(path, version, 0, RecursionType.None, null, null, version, int.MaxValue, true, false, true, false);
-            using (var historyProvider = new HistoryProvider(server, (IEnumerable<Changeset>)history))
+            using (var historyProvider = new HistoryProvider((IEnumerable<Changeset>)history))
             {
                 bool done = false;
 

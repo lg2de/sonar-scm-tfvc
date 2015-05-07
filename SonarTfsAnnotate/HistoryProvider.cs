@@ -35,7 +35,7 @@ namespace SonarSource.TfsAnnotate
 
         private int current = -1;
 
-        public HistoryProvider(VersionControlServer server, IEnumerable<Changeset> changesets)
+        public HistoryProvider(IEnumerable<Changeset> changesets)
         {
             foreach (Changeset changeset in changesets)
             {
@@ -106,7 +106,11 @@ namespace SonarSource.TfsAnnotate
                 File.Delete(filenames[i]);
                 filenames[i] = null;
             }
-            manualResetEvents[i] = null;
+            if (manualResetEvents[i] != null)
+            {
+                manualResetEvents[i].Dispose();
+                manualResetEvents[i] = null;
+            }
         }
 
         private void ThrowIfNoElement()
