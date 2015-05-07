@@ -1,5 +1,5 @@
 ﻿/*
- * SonarQube TFS Annotate Command Line Tool
+ * SonarQube :: SCM :: TFS :: Plugin
  * Copyright (C) 2014 SonarSource
  * dev@sonar.codehaus.org
  *
