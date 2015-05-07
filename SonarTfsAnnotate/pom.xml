@@ -13,6 +13,11 @@
 
   <name>SonarQube :: SCM :: TFS :: Annotate</name>
 
+  <properties>
+    <!-- To sign the executable, set to /p:AssemblyOriginatorKeyFile=[path] -->
+    <msbuild.signKeyFileArgument></msbuild.signKeyFileArgument>
+  </properties>
+
   <build>
     <plugins>
       <plugin>
@@ -44,8 +49,12 @@
             <configuration>
               <executable>${env.MSBUILD_PATH}</executable>
               <workingDirectory>.</workingDirectory>
+              <failWithEmptyArgument>false</failWithEmptyArgument>
               <arguments>
+                <argument>/t:Rebuild</argument>
                 <argument>/property:Configuration=Release</argument>
+                <argument>/p:SignAssembly=true</argument>
+                <argument>${msbuild.signKeyFileArgument}</argument>
               </arguments>
             </configuration>
           </execution>
