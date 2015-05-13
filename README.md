@@ -1,4 +1,4 @@
-## SonarQube TFS annotate command line tool
+## SonarQube SCM TFS plugin
 
 ### Documentation
 
