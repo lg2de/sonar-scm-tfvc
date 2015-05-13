@@ -2,4 +2,4 @@
 
 ### Documentation
 
-http://docs.sonarqube.org/x/uAU4
+http://redirect.sonarsource.com/plugins/scmtfs.html
