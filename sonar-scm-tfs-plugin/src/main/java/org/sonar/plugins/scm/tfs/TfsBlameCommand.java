@@ -46,7 +46,7 @@ import java.util.regex.Pattern;
 public class TfsBlameCommand extends BlameCommand {
 
   private static final Logger LOG = LoggerFactory.getLogger(TfsBlameCommand.class);
-  private static final Pattern LINE_PATTERN = Pattern.compile("([^ ]++) ([^ ]++) ([^ ]++)");
+  private static final Pattern LINE_PATTERN = Pattern.compile("([^\t]++)\t([^\t]++)\t([^\t]++)");
 
   private final TfsConfiguration conf;
   private final File executable;

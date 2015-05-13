@@ -128,11 +128,11 @@ namespace SonarSource.TfsAnnotate
                     {
                         Changeset changeset = annotatedFile.Changeset(i);
                         Console.Write(changeset.ChangesetId);
-                        Console.Write(' ');
+                        Console.Write('\t');
                         Console.Write(cache.GetEmailOrAccountName(serverUri, changeset.Owner));
-                        Console.Write(' ');
+                        Console.Write('\t');
                         Console.Write(ToUnixTimestampInMs(changeset.CreationDate));
-                        Console.Write(' ');
+                        Console.Write('\t');
                         Console.WriteLine(annotatedFile.Data(i));
                     }
                 }
