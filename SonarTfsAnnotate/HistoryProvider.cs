@@ -108,6 +108,7 @@ namespace SonarSource.TfsAnnotate
             }
             if (manualResetEvents[i] != null)
             {
+                manualResetEvents[i].WaitOne();
                 manualResetEvents[i].Dispose();
                 manualResetEvents[i] = null;
             }
