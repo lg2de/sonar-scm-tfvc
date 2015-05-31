@@ -71,8 +71,7 @@ namespace SonarSource.TfsAnnotate
                 currentEncoding = 0;
             }
 
-            var history = server.QueryHistory(path, version, 0, RecursionType.None, null, null, version, int.MaxValue, true, false, true, false);
-            using (var historyProvider = new HistoryProvider((IEnumerable<Changeset>)history))
+            using (var historyProvider = new HistoryProvider(server, path, version))
             {
                 bool done = false;
 

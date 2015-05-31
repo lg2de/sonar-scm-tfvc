@@ -35,8 +35,19 @@ namespace SonarSource.TfsAnnotate
 
         private int current = -1;
 
-        public HistoryProvider(IEnumerable<Changeset> changesets)
+        public HistoryProvider(VersionControlServer server, string path, VersionSpec version)
         {
+            FetchChangesets(server, path, version);
+
+            for (int i = 0; i < PREFETCH_SIZE && i < this.changesets.Count; i++)
+            {
+                Prefetch(i);
+            }
+        }
+
+        private void FetchChangesets(VersionControlServer server, string path, VersionSpec version)
+        {
+            var changesets = server.QueryHistory(path, version, 0, RecursionType.None, null, null, version, int.MaxValue, true, false, true, false);
             foreach (Changeset changeset in changesets)
             {
                 if (changeset.Changes.Length != 1)
@@ -47,11 +58,16 @@ namespace SonarSource.TfsAnnotate
                 this.changesets.Add(changeset);
                 filenames.Add(null);
                 manualResetEvents.Add(null);
-            }
 
-            for (int i = 0; i < PREFETCH_SIZE && i < this.changesets.Count; i++)
-            {
-                Prefetch(i);
+                var change = changeset.Changes[0];
+                if (change.ChangeType.HasFlag(ChangeType.Branch))
+                {
+                    var item = server.GetBranchHistory(new[] {new ItemSpec(change.Item.ServerItem, RecursionType.None)}, new ChangesetVersionSpec(changeset.ChangesetId))[0][0].GetRequestedItem().Relative.BranchFromItem;
+                    if (item != null)
+                    {
+                        FetchChangesets(server, item.ServerItem, new ChangesetVersionSpec(item.ChangesetId));
+                    }
+                }
             }
         }
 
