@@ -4,14 +4,14 @@
 
   <parent>
     <groupId>org.codehaus.sonar-plugins.tfs</groupId>
-    <artifactId>sonar-scm-tfs</artifactId>
+    <artifactId>sonar-scm-tfvc</artifactId>
     <version>2.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>SonarTfsAnnotate</artifactId>
   <packaging>pom</packaging>
 
-  <name>SonarQube :: SCM :: TFS :: Annotate</name>
+  <name>SonarQube :: SCM :: TFVC :: Annotate</name>
 
   <properties>
     <!-- To sign the executable, set to /p:AssemblyOriginatorKeyFile=[path] -->

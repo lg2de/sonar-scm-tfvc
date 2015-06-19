@@ -1,5 +1,5 @@
 /*
- * SonarQube :: SCM :: TFS :: Plugin
+ * SonarQube :: SCM :: TFVC :: Plugin
  * Copyright (C) 2014 SonarSource
  * dev@sonar.codehaus.org
  *
@@ -38,7 +38,7 @@ public class TfsScmProviderTest {
 
   @Test
   public void sanityCheck() {
-    assertThat(new TfsScmProvider(null).key()).isEqualTo("tfs");
+    assertThat(new TfsScmProvider(null).key()).isEqualTo("tfvc");
   }
 
   @Test

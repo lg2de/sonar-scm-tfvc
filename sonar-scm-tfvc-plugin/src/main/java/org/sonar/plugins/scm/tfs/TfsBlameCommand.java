@@ -1,5 +1,5 @@
 /*
- * SonarQube :: SCM :: TFS :: Plugin
+ * SonarQube :: SCM :: TFVC :: Plugin
  * Copyright (C) 2014 SonarSource
  * dev@sonar.codehaus.org
  *
@@ -65,7 +65,7 @@ public class TfsBlameCommand extends BlameCommand {
   public void blame(BlameInput input, BlameOutput output) {
     Process process = null;
     try {
-      LOG.debug("Executing the TFS blame command: " + executable.getAbsolutePath());
+      LOG.debug("Executing the TFVC annotate command: " + executable.getAbsolutePath());
       process = new ProcessBuilder(executable.getAbsolutePath()).start();
 
       OutputStreamWriter stdin = new OutputStreamWriter(process.getOutputStream(), Charsets.UTF_8);
@@ -106,7 +106,7 @@ public class TfsBlameCommand extends BlameCommand {
 
           Matcher matcher = LINE_PATTERN.matcher(line);
           if (!matcher.find()) {
-            throw new IllegalStateException("Invalid output from the TFS annotate command: \"" + line + "\" on file: " + path + " at line " + (i + 1));
+            throw new IllegalStateException("Invalid output from the TFVC annotate command: \"" + line + "\" on file: " + path + " at line " + (i + 1));
           }
 
           String revision = matcher.group(1).trim();
@@ -130,7 +130,7 @@ public class TfsBlameCommand extends BlameCommand {
 
       int exitCode = process.waitFor();
       if (exitCode != 0) {
-        throw new IllegalStateException("The TFS blame command " + executable.getAbsolutePath() + " failed with exit code " + exitCode);
+        throw new IllegalStateException("The TFVC annotate command " + executable.getAbsolutePath() + " failed with exit code " + exitCode);
       }
     } catch (IOException e) {
       throw Throwables.propagate(e);

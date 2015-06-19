@@ -1,5 +1,5 @@
 /*
- * SonarQube :: SCM :: TFS :: Plugin
+ * SonarQube :: SCM :: TFVC :: Plugin
  * Copyright (C) 2014 SonarSource
  * dev@sonar.codehaus.org
  *
@@ -19,27 +19,32 @@
  */
 package org.sonar.plugins.scm.tfs;
 
-import org.junit.Test;
-import org.sonar.api.config.PropertyDefinitions;
-import org.sonar.api.config.Settings;
+import org.sonar.api.batch.scm.BlameCommand;
+import org.sonar.api.batch.scm.ScmProvider;
 
-import static org.fest.assertions.Assertions.assertThat;
+import java.io.File;
 
-public class TfsConfigurationTest {
+public class TfsScmProvider extends ScmProvider {
 
-  @Test
-  public void sanityCheck() {
-    Settings settings = new Settings(new PropertyDefinitions(TfsConfiguration.getProperties()));
-    TfsConfiguration config = new TfsConfiguration(settings);
+  private final TfsBlameCommand blameCommand;
 
-    assertThat(config.username()).isEmpty();
-    assertThat(config.password()).isEmpty();
+  public TfsScmProvider(TfsBlameCommand blameCommand) {
+    this.blameCommand = blameCommand;
+  }
 
-    settings.setProperty("sonar.tfs.username", "foo");
-    assertThat(config.username()).isEqualTo("foo");
+  @Override
+  public String key() {
+    return "tfvc";
+  }
 
-    settings.setProperty("sonar.tfs.password.secured", "pwd");
-    assertThat(config.password()).isEqualTo("pwd");
+  @Override
+  public boolean supports(File baseDir) {
+    return new File(baseDir, "$tf").exists();
+  }
+
+  @Override
+  public BlameCommand blameCommand() {
+    return this.blameCommand;
   }
 
 }

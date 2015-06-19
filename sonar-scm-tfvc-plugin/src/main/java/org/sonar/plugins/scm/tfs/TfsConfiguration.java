@@ -1,5 +1,5 @@
 /*
- * SonarQube :: SCM :: TFS :: Plugin
+ * SonarQube :: SCM :: TFVC :: Plugin
  * Copyright (C) 2014 SonarSource
  * dev@sonar.codehaus.org
  *
@@ -34,9 +34,9 @@ import java.util.List;
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 public class TfsConfiguration implements BatchComponent {
 
-  private static final String CATEGORY = "TFS";
-  private static final String USERNAME_PROPERTY_KEY = "sonar.tfs.username";
-  private static final String PASSWORD_PROPERTY_KEY = "sonar.tfs.password.secured";
+  private static final String CATEGORY = "TFVC";
+  private static final String USERNAME_PROPERTY_KEY = "sonar.tfvc.username";
+  private static final String PASSWORD_PROPERTY_KEY = "sonar.tfvc.password.secured";
   private final Settings settings;
 
   public TfsConfiguration(Settings settings) {
@@ -47,7 +47,7 @@ public class TfsConfiguration implements BatchComponent {
     return ImmutableList.of(
       PropertyDefinition.builder(USERNAME_PROPERTY_KEY)
         .name("Username")
-        .description("Username to be used for TFS authentication")
+        .description("Username to be used for TFVC authentication")
         .type(PropertyType.STRING)
         .onQualifiers(Qualifiers.PROJECT)
         .category(CoreProperties.CATEGORY_SCM)
@@ -56,7 +56,7 @@ public class TfsConfiguration implements BatchComponent {
         .build(),
       PropertyDefinition.builder(PASSWORD_PROPERTY_KEY)
         .name("Password")
-        .description("Password to be used for TFS authentication")
+        .description("Password to be used for TFVC authentication")
         .type(PropertyType.PASSWORD)
         .onQualifiers(Qualifiers.PROJECT)
         .category(CoreProperties.CATEGORY_SCM)

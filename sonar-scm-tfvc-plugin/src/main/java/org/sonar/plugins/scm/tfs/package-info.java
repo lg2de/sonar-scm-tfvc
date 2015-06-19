@@ -1,5 +1,5 @@
 /*
- * SonarQube :: SCM :: TFS :: Plugin
+ * SonarQube :: SCM :: TFVC :: Plugin
  * Copyright (C) 2014 SonarSource
  * dev@sonar.codehaus.org
  *
@@ -17,27 +17,8 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
+@ParametersAreNonnullByDefault
 package org.sonar.plugins.scm.tfs;
 
-import com.google.common.collect.ImmutableList;
-import org.sonar.api.SonarPlugin;
+import javax.annotation.ParametersAreNonnullByDefault;
 
-import java.util.List;
-
-public class TfsPlugin extends SonarPlugin {
-
-  @Override
-  public List getExtensions() {
-    ImmutableList.Builder builder = ImmutableList.builder();
-
-    builder.add(
-      TfsScmProvider.class,
-      TfsBlameCommand.class,
-      TfsConfiguration.class);
-
-    builder.addAll(TfsConfiguration.getProperties());
-
-    return builder.build();
-  }
-
-}

@@ -1,5 +1,5 @@
 /*
- * SonarQube :: SCM :: TFS :: Plugin
+ * SonarQube :: SCM :: TFVC :: Plugin
  * Copyright (C) 2014 SonarSource
  * dev@sonar.codehaus.org
  *
@@ -118,7 +118,7 @@ public class TfsBlameCommandTest {
     DefaultInputFile inputFile = new DefaultInputFile("invalid_output", "invalid_output.txt").setAbsolutePath(file.getAbsolutePath());
 
     thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("Invalid output from the TFS annotate command: \"hello world!\" on file:");
+    thrown.expectMessage("Invalid output from the TFVC annotate command: \"hello world!\" on file:");
     thrown.expectMessage("at line 1");
 
     BlameInput input = mock(BlameInput.class);
@@ -136,7 +136,7 @@ public class TfsBlameCommandTest {
     DefaultInputFile inputFile = new DefaultInputFile("ko_non_existing", "ko_non_existing.txt").setAbsolutePath(file.getAbsolutePath());
 
     thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("The TFS blame command " + executable.getAbsolutePath() + " failed with exit code 1");
+    thrown.expectMessage("The TFVC annotate command " + executable.getAbsolutePath() + " failed with exit code 1");
 
     BlameInput input = mock(BlameInput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
