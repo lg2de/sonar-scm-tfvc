@@ -1,6 +1,3 @@
-# Maven files
-*.xml eol=lf
-
 # Text files should have CRLF line endings, even on non-Windows machines
 *.txt eol=crlf
 *.cs eol=crlf
