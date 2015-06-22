@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.sonarsource.sonar-plugins</groupId>
     <artifactId>parent</artifactId>
-    <version>21</version>
+    <version>22</version>
   </parent>
 
   <groupId>org.sonarsource.sonar-plugins.tfvc</groupId>
@@ -32,6 +32,10 @@
     <url>https://github.com/SonarCommunity/sonar-tfs</url>
     <tag>HEAD</tag>
   </scm>
+
+  <properties>
+    <bintray.package>sonar-scm-tfvc</bintray.package>
+  </properties>
 
   <developers>
     <developer>
