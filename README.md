@@ -1,5 +1,5 @@
-## SonarQube SCM TFS plugin
+## SonarQube SCM TFVC plugin
 
 ### Documentation
 
-http://redirect.sonarsource.com/plugins/scmtfs.html
+http://redirect.sonarsource.com/plugins/scmtfvc.html
