@@ -52,6 +52,7 @@
 
   <modules>
     <module>SonarTfsAnnotate</module>
+    <module>SonarTfsAnnotateTest</module>
     <module>sonar-scm-tfvc-plugin</module>
   </modules>
   <build>
