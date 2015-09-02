@@ -21,8 +21,8 @@
   </organization>
   <licenses>
     <license>
-      <name>GNU LGPL 3</name>
-      <url>http://www.gnu.org/licenses/lgpl.txt</url>
+      <name>MIT</name>
+      <url>http://www.opensource.org/licenses/mit-license.php</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
@@ -54,4 +54,44 @@
     <module>SonarTfsAnnotate</module>
     <module>sonar-scm-tfvc-plugin</module>
   </modules>
+  <build>
+      <plugins>
+      <!-- check copyright/license headers -->
+      <plugin>
+        <inherited>false</inherited>
+        <groupId>com.mycila.maven-license-plugin</groupId>
+        <artifactId>maven-license-plugin</artifactId>
+        <configuration>
+          <header>${project.basedir}/copyright.txt</header>
+          <failIfMissing>true</failIfMissing>
+          <strictCheck>true</strictCheck>
+          <aggregate>true</aggregate>
+          <includes>
+            <include>**/sonar-*/src/main/java/**</include>
+            <include>**/sonar-*/src/test/java/**</include>
+            <include>**/SonarT*/**/*.cs</include>
+          </includes>
+          <excludes>
+            <exclude>tests/**</exclude>
+            <exclude>**/obj/**</exclude>
+            <exclude>**/bin/**</exclude>
+          </excludes>
+          <mapping>
+            <java>SLASHSTAR_STYLE</java>
+            <cs>SLASHSTAR_STYLE</cs>
+          </mapping>
+          <skip>${skipSanityChecks}</skip>
+        </configuration>
+        <executions>
+          <execution>
+            <id>enforce-license-headers</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      </plugins>
+  </build>
 </project>

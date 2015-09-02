@@ -9,6 +9,7 @@
 [Rr]elease/
 x64/
 build/
+TestResults/
 bld/
 [Bb]in/
 [Oo]bj/
