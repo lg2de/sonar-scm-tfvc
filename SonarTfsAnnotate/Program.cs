@@ -4,12 +4,12 @@
  *
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
-using System;
-using System.IO;
-using System.Text;
 using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.VersionControl.Client;
+using System;
+using System.IO;
 using System.Net;
+using System.Text;
 
 namespace SonarSource.TfsAnnotate
 {
@@ -18,6 +18,32 @@ namespace SonarSource.TfsAnnotate
         private static readonly DateTime Epoch = new DateTime(1970, 1, 1);
 
         static int Main(string[] args)
+        {
+            AssemblyLoader assemblyLoader = new AssemblyLoader();
+
+            AppDomain currentDomain = AppDomain.CurrentDomain;
+            currentDomain.AssemblyResolve += (object s, ResolveEventArgs a) => assemblyLoader.GetCorrespondingAssemblyOverride(s, a);
+
+            try
+            {
+                return BeginAnnotate(args);
+            }
+            catch (FileLoadException e)
+            {
+                if (e.InnerException is AssemblyNotFoundException)
+                {
+                    Console.Error.WriteLine(e.InnerException);
+                    Console.Error.WriteLine("Cannot find the required assemblies. Please install Team Foundation Server 2013 Object Model or Visual Studio 2013 or higher.");
+                    return 1;
+                }
+                else
+                {
+                    throw;
+                }
+            }
+        }
+
+        private static int BeginAnnotate(string[] args)
         {
             Console.InputEncoding = Encoding.UTF8;
             Console.OutputEncoding = Encoding.UTF8;
@@ -42,12 +68,12 @@ namespace SonarSource.TfsAnnotate
             {
                 credentials = new TfsClientCredentials(true);
             }
+
             credentials.AllowInteractive = false;
             using (var cache = new TfsCache(credentials))
             {
                 Console.Out.WriteLine("Enter the paths to annotate");
                 Console.Out.Flush();
-
                 string path;
                 while ((path = Console.ReadLine()) != null)
                 {
@@ -105,6 +131,7 @@ namespace SonarSource.TfsAnnotate
                             failed = true;
                         }
                     }
+
                     if (failed)
                     {
                         continue;

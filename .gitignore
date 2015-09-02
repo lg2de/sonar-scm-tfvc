@@ -7,8 +7,10 @@
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
+TestResults/
 x64/
 build/
+TestResults/
 bld/
 [Bb]in/
 [Oo]bj/

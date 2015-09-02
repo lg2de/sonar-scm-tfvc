@@ -4,12 +4,12 @@
  *
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
+using Microsoft.TeamFoundation.VersionControl.Client;
+using Microsoft.TeamFoundation.VersionControl.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Microsoft.TeamFoundation.VersionControl.Client;
-using Microsoft.TeamFoundation.VersionControl.Common;
 
 namespace SonarSource.TfsAnnotate
 {
@@ -244,7 +244,7 @@ namespace SonarSource.TfsAnnotate
                 {
                     throw new InvalidOperationException("Not supported on binary files!");
                 }
-            }     
+            }
         }
     }
 
