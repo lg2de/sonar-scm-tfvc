@@ -13,22 +13,22 @@ import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.sonar.api.batch.fs.InputFile;
-import org.sonar.api.batch.scm.BlameCommand;
-import org.sonar.api.batch.scm.BlameLine;
-import org.sonar.api.utils.TempFolder;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.sonar.api.batch.fs.InputFile;
+import org.sonar.api.batch.scm.BlameCommand;
+import org.sonar.api.batch.scm.BlameLine;
+import org.sonar.api.utils.TempFolder;
 
 public class TfsBlameCommand extends BlameCommand {
 
@@ -125,10 +125,31 @@ public class TfsBlameCommand extends BlameCommand {
       throw Throwables.propagate(e);
     } finally {
       if (process != null) {
+        captureErrorStream(process);
         Closeables.closeQuietly(process.getInputStream());
         Closeables.closeQuietly(process.getOutputStream());
         Closeables.closeQuietly(process.getErrorStream());
+        process.destroy();
       }
+    }
+  }
+
+  private static void captureErrorStream(Process process) {
+    try {
+      InputStream errorStream = process.getErrorStream();
+      BufferedReader errStream = new BufferedReader(new InputStreamReader(errorStream, Charsets.UTF_8));
+      int readBytesCount = errorStream.available();
+      char[] errorChars = new char[readBytesCount];
+
+      if (readBytesCount > 0) {
+        errStream.read(errorChars);
+        String errorString = new String(errorChars);
+        if (!errorString.isEmpty()) {
+          LOG.error(errorString);
+        }
+      }
+    } catch (IOException e) {
+      LOG.error("Exception thrown while getting error Stream data - " + e);
     }
   }
 
