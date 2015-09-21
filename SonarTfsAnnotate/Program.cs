@@ -60,15 +60,19 @@ namespace SonarSource.TfsAnnotate
                         continue;
                     }
 
+                    WorkspaceInfo workspaceInfo = Workstation.Current.GetLocalWorkspaceInfo(path);
+                    Uri serverUri = workspaceInfo.ServerUri;
+                    WorkspaceVersionSpec version = new WorkspaceVersionSpec(workspaceInfo);
+
+                    VersionControlServer versionControlServer = cache.GetVersionControlServer(serverUri);
+
+                    Workstation.Current.EnsureUpdateWorkspaceInfoCache(versionControlServer, workspaceInfo.OwnerName);
+
                     if (!Workstation.Current.IsMapped(path))
                     {
                         FailOnFile("is not in a mapped TFS workspace: " + path);
                         continue;
                     }
-
-                    WorkspaceInfo workspaceInfo = Workstation.Current.GetLocalWorkspaceInfo(path);
-                    Uri serverUri = workspaceInfo.ServerUri;
-                    WorkspaceVersionSpec version = new WorkspaceVersionSpec(workspaceInfo);
 
                     try
                     {
@@ -79,8 +83,6 @@ namespace SonarSource.TfsAnnotate
                         FailOnFile("raised the following authentication exception: " + path + ", " + e.Message);
                         return 1;
                     }
-
-                    var versionControlServer = cache.GetVersionControlServer(serverUri);
 
                     IAnnotatedFile annotatedFile = new FileAnnotator(versionControlServer).Annotate(path, version);
                     if (annotatedFile == null)
