@@ -12,6 +12,7 @@ install:
 
 environment:
   MSBUILD_PATH: C:\PROGRA~2\MSBuild\14.0\Bin\MSBuild.exe
+  MSTEST_PATH: C:\PROGRA~2\MICROS~3.0\Common7\IDE\MSTest.exe
 
 build_script:
   - mvn clean install

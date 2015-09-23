@@ -4,11 +4,11 @@
  *
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
+using Microsoft.TeamFoundation.VersionControl.Client;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-using Microsoft.TeamFoundation.VersionControl.Client;
 
 namespace SonarSource.TfsAnnotate
 {
