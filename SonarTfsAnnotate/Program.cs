@@ -16,6 +16,7 @@ namespace SonarSource.TfsAnnotate
     class Program
     {
         private static readonly DateTime Epoch = new DateTime(1970, 1, 1);
+        private static Uri serverUri = null;
 
         static int Main(string[] args)
         {
@@ -43,8 +44,29 @@ namespace SonarSource.TfsAnnotate
                 credentials = new TfsClientCredentials(true);
             }
             credentials.AllowInteractive = false;
+
+            Console.WriteLine("Enter the Collection URI");
+            Console.Out.Flush();
+            var serverUriString = Console.ReadLine();
+
+            if (!string.IsNullOrEmpty(serverUriString))
+            {
+                if (!SetServerUri(serverUriString))
+                {
+                    return 1;
+                }
+            }
+
             using (var cache = new TfsCache(credentials))
             {
+                if (serverUri != null)
+                {
+                    if (!UpdateCache(cache, serverUri))
+                    {
+                        return 1;
+                    }
+                }
+
                 Console.Out.WriteLine("Enter the paths to annotate");
                 Console.Out.Flush();
 
@@ -67,17 +89,15 @@ namespace SonarSource.TfsAnnotate
                     }
 
                     WorkspaceInfo workspaceInfo = Workstation.Current.GetLocalWorkspaceInfo(path);
-                    Uri serverUri = workspaceInfo.ServerUri;
                     WorkspaceVersionSpec version = new WorkspaceVersionSpec(workspaceInfo);
 
-                    try
+                    if (serverUri == null || workspaceInfo.ServerUri.AbsoluteUri != serverUri.AbsoluteUri)
                     {
-                        cache.EnsureAuthenticated(serverUri);
-                    }
-                    catch (Exception e)
-                    {
-                        FailOnFile("raised the following authentication exception: " + path + ", " + e.Message);
-                        return 1;
+                        serverUri = workspaceInfo.ServerUri;
+                        if (!UpdateCache(cache, serverUri))
+                        {
+                            return 1;
+                        }
                     }
 
                     var versionControlServer = cache.GetVersionControlServer(serverUri);
@@ -129,6 +149,37 @@ namespace SonarSource.TfsAnnotate
             return 0;
         }
 
+        private static bool UpdateCache(TfsCache cache, Uri serverUri)
+        {
+            try
+            {
+                cache.EnsureAuthenticated(serverUri);
+            }
+            catch (Exception e)
+            {
+                FailOnProject("raised the following authentication exception: " + e.Message);
+                return false;
+            }
+
+            VersionControlServer versionControlServer = cache.GetVersionControlServer(serverUri);
+            Workstation.Current.EnsureUpdateWorkspaceInfoCache(versionControlServer, versionControlServer.AuthorizedUser);
+            return true;
+        }
+
+        private static bool SetServerUri(String serverUriString)
+        {
+            try
+            {
+                serverUri = new Uri(serverUriString);
+            }
+            catch (UriFormatException e)
+            {
+                FailOnProject("raised the following exception: " + e.Message + " Please enter the correct server URI.");
+                return false;
+            }
+            return true;
+        }
+
         private static long ToUnixTimestampInMs(DateTime dateTime)
         {
             var timespan = dateTime - Epoch;
@@ -140,6 +191,11 @@ namespace SonarSource.TfsAnnotate
             Console.WriteLine("0");
             Console.Write("Unable to TFS annotate the following file which ");
             Console.WriteLine(reason);
+        }
+
+        private static void FailOnProject(string reason)
+        {
+            Console.Error.WriteLine("Unable to TFS annotate the project which " + reason);
         }
     }
 }

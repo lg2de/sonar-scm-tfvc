@@ -24,6 +24,7 @@ public class TfsConfiguration implements BatchComponent {
   private static final String CATEGORY = "TFVC";
   private static final String USERNAME_PROPERTY_KEY = "sonar.tfvc.username";
   private static final String PASSWORD_PROPERTY_KEY = "sonar.tfvc.password.secured";
+  private static final String COLLECTIONURI_PROPERTY_KEY = "sonar.tfvc.collectionuri";
   private final Settings settings;
 
   public TfsConfiguration(Settings settings) {
@@ -49,6 +50,15 @@ public class TfsConfiguration implements BatchComponent {
         .category(CoreProperties.CATEGORY_SCM)
         .subCategory(CATEGORY)
         .index(1)
+        .build(),
+      PropertyDefinition.builder(COLLECTIONURI_PROPERTY_KEY)
+        .name("CollectionURI")
+        .description("Uri of the TFVC collection. Example: - https://[account].visualstudio.com/DefaultCollection or http://ServerName:8080/tfs/DefaultCollection")
+        .type(PropertyType.STRING)
+        .onQualifiers(Qualifiers.PROJECT)
+        .category(CoreProperties.CATEGORY_SCM)
+        .subCategory(CATEGORY)
+        .index(2)
         .build());
   }
 
@@ -58,6 +68,10 @@ public class TfsConfiguration implements BatchComponent {
 
   public String password() {
     return Strings.nullToEmpty(settings.getString(PASSWORD_PROPERTY_KEY));
+  }
+
+  public String collectionUri() {
+    return Strings.nullToEmpty(settings.getString(COLLECTIONURI_PROPERTY_KEY));
   }
 
 }

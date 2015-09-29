@@ -62,6 +62,11 @@ public class TfsBlameCommand extends BlameCommand {
       stdin.write(conf.username() + "\r\n");
       stdin.write(conf.password() + "\r\n");
       stdin.flush();
+
+      stdout.readLine();
+      stdin.write(conf.collectionUri() + "\r\n");
+      stdin.flush();
+
       stdout.readLine();
 
       for (InputFile inputFile : input.filesToBlame()) {
@@ -162,5 +167,4 @@ public class TfsBlameCommand extends BlameCommand {
     }
     return executable;
   }
-
 }
