@@ -27,9 +27,9 @@
     </license>
   </licenses>
   <scm>
-    <connection>scm:git:git@github.com:SonarCommunity/sonar-tfs.git</connection>
-    <developerConnection>scm:git:git@github.com:SonarCommunity/sonar-tfs.git</developerConnection>
-    <url>https://github.com/SonarCommunity/sonar-tfs</url>
+    <connection>scm:git:git@github.com:SonarCommunity/sonar-scm-tfvc.git</connection>
+    <developerConnection>scm:git:git@github.com:SonarCommunity/sonar-scm-tfvc.git</developerConnection>
+    <url>https://github.com/SonarCommunity/sonar-scm-tfvc</url>
     <tag>HEAD</tag>
   </scm>
 
