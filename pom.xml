@@ -33,10 +33,6 @@
     <tag>HEAD</tag>
   </scm>
 
-  <properties>
-    <bintray.package>sonar-scm-tfvc</bintray.package>
-  </properties>
-
   <developers>
     <developer>
       <id>dbolkensteyn</id>
