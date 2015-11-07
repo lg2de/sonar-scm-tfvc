@@ -46,6 +46,10 @@ namespace SonarSource.TfsAnnotate
             var username = Console.ReadLine();
             var password = Console.ReadLine();
 
+            Console.WriteLine("collection");
+            Console.Out.Flush();
+            var coll = Console.ReadLine();
+
             TfsClientCredentials credentials;
             if (!String.IsNullOrEmpty(username) || !String.IsNullOrEmpty(password))
             {
@@ -64,8 +68,8 @@ namespace SonarSource.TfsAnnotate
                 string path;
                 while ((path = Console.ReadLine()) != null)
                 {
-                    Console.Out.Flush();
                     Console.WriteLine(path);
+                    Console.Out.Flush();
 
                     if (!File.Exists(path))
                     {
@@ -128,11 +132,11 @@ namespace SonarSource.TfsAnnotate
                     {
                         Changeset changeset = annotatedFile.Changeset(i);
                         Console.Write(changeset.ChangesetId);
-                        Console.Write(' ');
+                        Console.Write("\t");
                         Console.Write(cache.GetEmailOrAccountName(serverUri, changeset.Owner));
-                        Console.Write(' ');
+                        Console.Write("\t");
                         Console.Write(ToUnixTimestampInMs(changeset.CreationDate));
-                        Console.Write(' ');
+                        Console.Write("\t");
                         Console.WriteLine(annotatedFile.Data(i));
                     }
                 }
@@ -150,7 +154,7 @@ namespace SonarSource.TfsAnnotate
 
         private static void FailOnFile(string reason)
         {
-            Console.WriteLine("0");
+            Console.WriteLine(string.Format("0 - {0}",reason));
             Console.Write("Unable to TFS annotate the following file which ");
             Console.WriteLine(reason);
         }
