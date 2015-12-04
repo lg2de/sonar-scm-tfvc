@@ -25,6 +25,7 @@ public class TfsConfiguration implements BatchComponent {
   private static final String USERNAME_PROPERTY_KEY = "sonar.tfvc.username";
   private static final String PASSWORD_PROPERTY_KEY = "sonar.tfvc.password.secured";
   private static final String COLLECTIONURI_PROPERTY_KEY = "sonar.tfvc.collectionuri";
+  private static final String PAT_PROPERTY_KEY = "sonar.tfvc.pat.secured";
   private final Settings settings;
 
   public TfsConfiguration(Settings settings) {
@@ -33,32 +34,41 @@ public class TfsConfiguration implements BatchComponent {
 
   public static List<PropertyDefinition> getProperties() {
     return ImmutableList.of(
-      PropertyDefinition.builder(USERNAME_PROPERTY_KEY)
-        .name("Username")
-        .description("Username to be used for TFVC authentication")
-        .type(PropertyType.STRING)
+      PropertyDefinition.builder(PAT_PROPERTY_KEY)
+        .name("PersonalAccessToken")
+        .description("All scopes PAT when connecting to Visual Studio Team Services")
+        .type(PropertyType.PASSWORD)
         .onQualifiers(Qualifiers.PROJECT)
         .category(CoreProperties.CATEGORY_SCM)
         .subCategory(CATEGORY)
         .index(0)
         .build(),
-      PropertyDefinition.builder(PASSWORD_PROPERTY_KEY)
-        .name("Password")
-        .description("Password to be used for TFVC authentication")
-        .type(PropertyType.PASSWORD)
+      PropertyDefinition.builder(USERNAME_PROPERTY_KEY)
+        .name("Username")
+        .description("Username when connecting to on-premises Team Foundation Server")
+        .type(PropertyType.STRING)
         .onQualifiers(Qualifiers.PROJECT)
         .category(CoreProperties.CATEGORY_SCM)
         .subCategory(CATEGORY)
         .index(1)
         .build(),
-      PropertyDefinition.builder(COLLECTIONURI_PROPERTY_KEY)
-        .name("CollectionURI")
-        .description("Uri of the TFVC collection. Example: - https://[account].visualstudio.com/DefaultCollection or http://ServerName:8080/tfs/DefaultCollection")
-        .type(PropertyType.STRING)
+      PropertyDefinition.builder(PASSWORD_PROPERTY_KEY)
+        .name("Password")
+        .description("Password when connecting to on-premises Team Foundation Server")
+        .type(PropertyType.PASSWORD)
         .onQualifiers(Qualifiers.PROJECT)
         .category(CoreProperties.CATEGORY_SCM)
         .subCategory(CATEGORY)
         .index(2)
+        .build(),
+      PropertyDefinition.builder(COLLECTIONURI_PROPERTY_KEY)
+        .name("CollectionURI")
+        .description("Example: - https://[account].visualstudio.com/DefaultCollection or http://ServerName:8080/tfs/DefaultCollection")
+        .type(PropertyType.STRING)
+        .onQualifiers(Qualifiers.PROJECT)
+        .category(CoreProperties.CATEGORY_SCM)
+        .subCategory(CATEGORY)
+        .index(3)
         .build());
   }
 
@@ -72,6 +82,10 @@ public class TfsConfiguration implements BatchComponent {
 
   public String collectionUri() {
     return Strings.nullToEmpty(settings.getString(COLLECTIONURI_PROPERTY_KEY));
+  }
+
+  public String pat() {
+    return Strings.nullToEmpty(settings.getString(PAT_PROPERTY_KEY));
   }
 
 }

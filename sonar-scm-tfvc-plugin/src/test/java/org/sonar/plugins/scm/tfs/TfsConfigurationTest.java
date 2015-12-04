@@ -22,6 +22,7 @@ public class TfsConfigurationTest {
     assertThat(config.username()).isEmpty();
     assertThat(config.password()).isEmpty();
     assertThat(config.collectionUri()).isEmpty();
+    assertThat(config.pat()).isEmpty();
 
     settings.setProperty("sonar.tfvc.username", "foo");
     assertThat(config.username()).isEqualTo("foo");
@@ -31,6 +32,9 @@ public class TfsConfigurationTest {
 
     settings.setProperty("sonar.tfvc.collectionuri", "uri");
     assertThat(config.collectionUri()).isEqualTo("uri");
+
+    settings.setProperty("sonar.tfvc.pat.secured", "pat");
+    assertThat(config.pat()).isEqualTo("pat");
   }
 
 }
