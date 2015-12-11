@@ -33,9 +33,15 @@ namespace SonarSource.TfsAnnotate
             Console.Out.Flush();
             var username = Console.ReadLine();
             var password = Console.ReadLine();
+            var pat = Console.ReadLine();
 
             TfsClientCredentials credentials;
-            if (!String.IsNullOrEmpty(username) || !String.IsNullOrEmpty(password))
+
+            if (!String.IsNullOrEmpty(pat))
+            {
+                credentials = new TfsClientCredentials(new BasicAuthCredential(new NetworkCredential("", pat)));
+            }
+            else if (!String.IsNullOrEmpty(username) || !String.IsNullOrEmpty(password))
             {
                 credentials = new TfsClientCredentials(new WindowsCredential(new NetworkCredential(username, password)));
             }

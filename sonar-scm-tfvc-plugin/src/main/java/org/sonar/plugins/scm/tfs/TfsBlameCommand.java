@@ -61,6 +61,7 @@ public class TfsBlameCommand extends BlameCommand {
       stdout.readLine();
       stdin.write(conf.username() + "\r\n");
       stdin.write(conf.password() + "\r\n");
+      stdin.write(conf.pat() + "\r\n");
       stdin.flush();
 
       stdout.readLine();
