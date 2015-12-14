@@ -6,6 +6,7 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using Microsoft.TeamFoundation.VersionControl.Client;
@@ -60,25 +61,34 @@ namespace SonarSource.TfsAnnotate
 
         public bool Next()
         {
-            if (current - 1 >= 0)
+            while (true)
             {
-                Dispose(current - 1);
+                if (current - 1 >= 0)
+                {
+                    Dispose(current - 1);
+                }
+
+                current++;
+                if (current >= changesets.Count)
+                {
+                    return false;
+                }
+
+                if (current + PREFETCH_SIZE < changesets.Count)
+                {
+                    Prefetch(current + PREFETCH_SIZE);
+                }
+
+                manualResetEvents[current].WaitOne();
+
+                if (!File.Exists(filenames[current]))
+                {
+                    // The download was not successful. Move on to the next file.
+                    continue;
+                }
+
+                return true;
             }
-
-            current++;
-            if (current >= changesets.Count)
-            {
-                return false;
-            }
-
-            if (current + PREFETCH_SIZE < changesets.Count)
-            {
-                Prefetch(current + PREFETCH_SIZE);
-            }
-
-            manualResetEvents[current].WaitOne();
-
-            return true;
         }
 
         public Changeset Changeset()
@@ -149,8 +159,18 @@ namespace SonarSource.TfsAnnotate
 
             public void Prefetch(object o)
             {
-                item.DownloadFile(filename);
-                manualResetEvent.Set();
+                try
+                {
+                    item.DownloadFile(filename);
+                }
+                catch (Exception e)
+                {
+                    Trace.WriteLine(e.Message);
+                }
+                finally
+                {
+                    manualResetEvent.Set();
+                }
             }
         }
     }
