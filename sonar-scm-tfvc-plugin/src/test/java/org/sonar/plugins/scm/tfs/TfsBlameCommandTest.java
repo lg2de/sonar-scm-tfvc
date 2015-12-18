@@ -102,26 +102,6 @@ public class TfsBlameCommandTest {
   }
 
   @Test
-  public void should_not_save_info_when_0_lines_returned() throws IOException {
-    File executable = new File("src/test/resources/fake.bat");
-    TfsBlameCommand command = new TfsBlameCommand(conf, executable);
-
-    File file = new File("src/test/resources/ko_0_lines.txt");
-    DefaultInputFile inputFile = new DefaultInputFile("ko_0_lines", "ko_0_lines.txt").setAbsolutePath(file.getAbsolutePath());
-
-    BlameInput input = mock(BlameInput.class);
-    when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
-
-    BlameOutput output = mock(BlameOutput.class);
-
-    command.blame(input, output);
-
-    verify(output, Mockito.never()).blameResult(Mockito.any(InputFile.class), Mockito.anyList());
-
-    assertThat(appender.getErrorEvents()).isEmpty();
-  }
-
-  @Test
   public void should_fail_on_invalid_output() {
     File executable = new File("src/test/resources/fake.bat");
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);
@@ -129,47 +109,62 @@ public class TfsBlameCommandTest {
     File file = new File("src/test/resources/invalid_output.txt");
     DefaultInputFile inputFile = new DefaultInputFile("invalid_output", "invalid_output.txt").setAbsolutePath(file.getAbsolutePath());
 
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("Invalid output from the TFVC annotate command: \"hello world!\" on file:");
-    thrown.expectMessage("at line 1");
-
     BlameInput input = mock(BlameInput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
 
-    command.blame(input, mock(BlameOutput.class));
+    BlameOutput output = mock(BlameOutput.class);
+
+    command.blame(input, output);
+    assertThat(appender.getErrorEvents()).containsExactly("" +
+            "IllegalStateException thrown in the TFVC annotate command : Invalid output from the TFVC annotate command: \"hello world!\" on file: " + inputFile.absolutePath() + " at line 1");
+    verify(output, Mockito.never()).blameResult(Mockito.any(InputFile.class), Mockito.anyList());
   }
 
   @Test
-  public void file_not_found_error() {
-    File executable = new File("src/test/resources/fake.bat");
+  public void should_fail_on_error_on_file() {
+    File executable = new File("src/test/resources/file_level_error.bat");
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);
 
     File file = new File("src/test/resources/ko_non_existing.txt");
     DefaultInputFile inputFile = new DefaultInputFile("ko_non_existing", "ko_non_existing.txt").setAbsolutePath(file.getAbsolutePath());
 
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("The TFVC annotate command " + executable.getAbsolutePath() + " failed with exit code 1");
 
     BlameInput input = mock(BlameInput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
+    BlameOutput output = mock(BlameOutput.class);
 
-    command.blame(input, mock(BlameOutput.class));
+    command.blame(input, output);
+    assertThat(appender.getErrorEvents()).containsExactly("" +
+            "Exception on Annotating File");
+    verify(output, Mockito.never()).blameResult(Mockito.any(InputFile.class), Mockito.anyList());
+  }
+
+  @Test
+  public void should_fail_on_error_on_project() {
+    File executable = new File("src/test/resources/project_level_error.bat");
+    TfsBlameCommand command = new TfsBlameCommand(conf, executable);
+
+    File file = new File("src/test/resources/ko_non_existing.txt");
+    DefaultInputFile inputFile = new DefaultInputFile("ko_non_existing", "ko_non_existing.txt").setAbsolutePath(file.getAbsolutePath());
+
+
+    BlameInput input = mock(BlameInput.class);
+    when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
+    BlameOutput output = mock(BlameOutput.class);
+
+    command.blame(input, output);
+    assertThat(appender.getErrorEvents()).containsExactly("" +
+            "Exception on Annotating Project");
+    verify(output, Mockito.never()).blameResult(Mockito.any(InputFile.class), Mockito.anyList());
   }
 
   @Test
   public void read_error_stream() {
     File executable = new File("src/test/resources/error_stream.bat");
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);
-    boolean isExceptionThrown = false;
-
-    try {
-      command.blame(mock(BlameInput.class), mock(BlameOutput.class));
-    } catch (RuntimeException e) {
-      isExceptionThrown = true;
-    }
-
-    assertThat(isExceptionThrown).isTrue();
-    assertThat(appender.getErrorEvents()).containsExactly("error stream string 1\r\nerror stream string 2\r\n");
+    command.blame(mock(BlameInput.class), mock(BlameOutput.class));
+    String[] errArray = {"IOException thrown in the TFVC annotate command : The pipe is being closed","error stream string 1\r\nerror stream string 2\r\n"};
+    assertThat(appender.getErrorEvents()).containsExactly(errArray);
   }
 
   private static Logger getRootLogger() {

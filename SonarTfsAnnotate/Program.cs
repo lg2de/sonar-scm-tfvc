@@ -20,139 +20,154 @@ namespace SonarSource.TfsAnnotate
 
         static int Main(string[] args)
         {
-            Console.InputEncoding = Encoding.UTF8;
-            Console.OutputEncoding = Encoding.UTF8;
-
-            if (args.Length != 0)
+            try
             {
-                Console.Error.WriteLine("This program is only expected to be called by the SonarQube TFS SCM plugin.");
-                return 1;
-            }
+                Console.InputEncoding = Encoding.UTF8;
+                Console.OutputEncoding = Encoding.UTF8;
 
-            Console.WriteLine("Enter your credentials");
-            Console.Out.Flush();
-            var username = Console.ReadLine();
-            var password = Console.ReadLine();
-            var pat = Console.ReadLine();
-
-            TfsClientCredentials credentials;
-
-            if (!String.IsNullOrEmpty(pat))
-            {
-                credentials = new TfsClientCredentials(new BasicAuthCredential(new NetworkCredential("", pat)));
-            }
-            else if (!String.IsNullOrEmpty(username) || !String.IsNullOrEmpty(password))
-            {
-                credentials = new TfsClientCredentials(new WindowsCredential(new NetworkCredential(username, password)));
-            }
-            else
-            {
-                credentials = new TfsClientCredentials(true);
-            }
-            credentials.AllowInteractive = false;
-
-            Console.WriteLine("Enter the Collection URI");
-            Console.Out.Flush();
-            var serverUriString = Console.ReadLine();
-
-            if (!string.IsNullOrEmpty(serverUriString))
-            {
-                if (!SetServerUri(serverUriString))
+                if (args.Length != 0)
                 {
+                    Console.Error.WriteLine("This program is only expected to be called by the SonarQube TFS SCM plugin.");
                     return 1;
                 }
-            }
 
-            using (var cache = new TfsCache(credentials))
-            {
-                if (serverUri != null)
+                Console.WriteLine("Enter your credentials");
+                Console.Out.Flush();
+                var username = Console.ReadLine();
+                var password = Console.ReadLine();
+                var pat = Console.ReadLine();
+
+                TfsClientCredentials credentials;
+
+                if (!String.IsNullOrEmpty(pat))
                 {
-                    if (!UpdateCache(cache, serverUri))
+                    credentials = new TfsClientCredentials(new BasicAuthCredential(new NetworkCredential("", pat)));
+                }
+                else if (!String.IsNullOrEmpty(username) || !String.IsNullOrEmpty(password))
+                {
+                    credentials = new TfsClientCredentials(new WindowsCredential(new NetworkCredential(username, password)));
+                }
+                else
+                {
+                    credentials = new TfsClientCredentials(true);
+                }
+                credentials.AllowInteractive = false;
+
+                Console.WriteLine("Enter the Collection URI");
+                Console.Out.Flush();
+                var serverUriString = Console.ReadLine();
+
+                if (!string.IsNullOrEmpty(serverUriString))
+                {
+                    if (!SetServerUri(serverUriString))
                     {
                         return 1;
                     }
                 }
 
-                Console.Out.WriteLine("Enter the paths to annotate");
-                Console.Out.Flush();
-
-                string path;
-                while ((path = Console.ReadLine()) != null)
+                using (var cache = new TfsCache(credentials))
                 {
-                    Console.Out.Flush();
-                    Console.WriteLine(path);
-
-                    if (!File.Exists(path))
+                    if (serverUri != null)
                     {
-                        FailOnFile("does not exist: " + path);
-                        continue;
-                    }
-
-                    if (!Workstation.Current.IsMapped(path))
-                    {
-                        FailOnFile("is not in a mapped TFS workspace: " + path);
-                        continue;
-                    }
-
-                    WorkspaceInfo workspaceInfo = Workstation.Current.GetLocalWorkspaceInfo(path);
-                    WorkspaceVersionSpec version = new WorkspaceVersionSpec(workspaceInfo);
-
-                    if (serverUri == null || workspaceInfo.ServerUri.AbsoluteUri != serverUri.AbsoluteUri)
-                    {
-                        serverUri = workspaceInfo.ServerUri;
                         if (!UpdateCache(cache, serverUri))
                         {
                             return 1;
                         }
                     }
 
-                    var versionControlServer = cache.GetVersionControlServer(serverUri);
+                    Console.Out.WriteLine("Enter the paths to annotate");
+                    Console.Out.Flush();
 
-                    IAnnotatedFile annotatedFile = new FileAnnotator(versionControlServer).Annotate(path, version);
-                    if (annotatedFile == null)
+                    string path;
+                    while ((path = Console.ReadLine()) != null)
                     {
-                        FailOnFile("is not yet checked-in: " + path);
-                        continue;
-                    }
-
-                    if (annotatedFile.IsBinary())
-                    {
-                        FailOnFile("is a binary one: " + path);
-                        continue;
-                    }
-
-                    bool failed = false;
-                    for (int i = 0; !failed && i < annotatedFile.Lines(); i++)
-                    {
-                        var state = annotatedFile.State(i);
-                        if (state != AnnotationState.COMMITTED)
+                        try
                         {
-                            FailOnFile("line " + (i + 1) + " has not yet been checked-in (" + state + "): " + path);
-                            failed = true;
+                            Console.Out.Flush();
+                            Console.WriteLine(path);
+
+                            if (!File.Exists(path))
+                            {
+                                FailOnFile("does not exist: " + path);
+                                continue;
+                            }
+
+                            if (!Workstation.Current.IsMapped(path))
+                            {
+                                FailOnFile("is not in a mapped TFS workspace: " + path);
+                                continue;
+                            }
+
+                            WorkspaceInfo workspaceInfo = Workstation.Current.GetLocalWorkspaceInfo(path);
+                            WorkspaceVersionSpec version = new WorkspaceVersionSpec(workspaceInfo);
+
+                            if (serverUri == null || workspaceInfo.ServerUri.AbsoluteUri != serverUri.AbsoluteUri)
+                            {
+                                serverUri = workspaceInfo.ServerUri;
+                                if (!UpdateCache(cache, serverUri))
+                                {
+                                    return 1;
+                                }
+                            }
+
+                            var versionControlServer = cache.GetVersionControlServer(serverUri);
+
+                            IAnnotatedFile annotatedFile = new FileAnnotator(versionControlServer).Annotate(path, version);
+                            if (annotatedFile == null)
+                            {
+                                FailOnFile("is not yet checked-in: " + path);
+                                continue;
+                            }
+
+                            if (annotatedFile.IsBinary())
+                            {
+                                FailOnFile("is a binary one: " + path);
+                                continue;
+                            }
+
+                            bool failed = false;
+                            for (int i = 0; !failed && i < annotatedFile.Lines(); i++)
+                            {
+                                var state = annotatedFile.State(i);
+                                if (state != AnnotationState.COMMITTED)
+                                {
+                                    FailOnFile("line " + (i + 1) + " has not yet been checked-in (" + state + "): " + path);
+                                    failed = true;
+                                }
+                            }
+                            if (failed)
+                            {
+                                continue;
+                            }
+
+                            Console.WriteLine(annotatedFile.Lines());
+                            for (int i = 0; i < annotatedFile.Lines(); i++)
+                            {
+                                Changeset changeset = annotatedFile.Changeset(i);
+                                Console.Write(changeset.ChangesetId);
+                                Console.Write('\t');
+                                Console.Write(cache.GetEmailOrAccountName(serverUri, changeset.Owner));
+                                Console.Write('\t');
+                                Console.Write(ToUnixTimestampInMs(changeset.CreationDate));
+                                Console.Write('\t');
+                                Console.WriteLine(annotatedFile.Data(i));
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            FailOnFile(e.Message);
                         }
                     }
-                    if (failed)
-                    {
-                        continue;
-                    }
-
-                    Console.WriteLine(annotatedFile.Lines());
-                    for (int i = 0; i < annotatedFile.Lines(); i++)
-                    {
-                        Changeset changeset = annotatedFile.Changeset(i);
-                        Console.Write(changeset.ChangesetId);
-                        Console.Write('\t');
-                        Console.Write(cache.GetEmailOrAccountName(serverUri, changeset.Owner));
-                        Console.Write('\t');
-                        Console.Write(ToUnixTimestampInMs(changeset.CreationDate));
-                        Console.Write('\t');
-                        Console.WriteLine(annotatedFile.Data(i));
-                    }
+                    Console.Out.Flush();
                 }
-                Console.Out.Flush();
-            }
 
-            return 0;
+                return 0;
+            }
+            catch(Exception e)
+            {
+                FailOnProject(e.Message);
+                return 1;
+            }
         }
 
         private static bool UpdateCache(TfsCache cache, Uri serverUri)
@@ -194,13 +209,13 @@ namespace SonarSource.TfsAnnotate
 
         private static void FailOnFile(string reason)
         {
-            Console.WriteLine("0");
-            Console.Write("Unable to TFS annotate the following file which ");
-            Console.WriteLine(reason);
+            Console.Out.WriteLine("AnnotationFailedOnFile");
+            Console.Error.WriteLine("Unable to TFS annotate the following file which " + reason);
         }
 
         private static void FailOnProject(string reason)
         {
+            Console.Out.WriteLine("AnnotationFailedOnProject");
             Console.Error.WriteLine("Unable to TFS annotate the project which " + reason);
         }
     }

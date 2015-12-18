@@ -50,7 +50,12 @@ namespace SonarSource.TfsAnnotate
                 var change = changeset.Changes[0];
                 if (change.ChangeType.HasFlag(ChangeType.Branch))
                 {
-                    var item = server.GetBranchHistory(new[] {new ItemSpec(change.Item.ServerItem, RecursionType.None)}, new ChangesetVersionSpec(changeset.ChangesetId))[0][0].GetRequestedItem().Relative.BranchFromItem;
+                    var branchHistoryTree = server.GetBranchHistory(new[] { new ItemSpec(change.Item.ServerItem, RecursionType.None) }, new ChangesetVersionSpec(changeset.ChangesetId));
+                    if (branchHistoryTree == null || branchHistoryTree.Length == 0 || branchHistoryTree[0].Length == 0)
+                    {
+                        continue;
+                    }
+                    var item = branchHistoryTree[0][0].GetRequestedItem().Relative.BranchFromItem;
                     if (item != null)
                     {
                         FetchChangesets(server, item.ServerItem, new ChangesetVersionSpec(item.ChangesetId));
@@ -83,7 +88,7 @@ namespace SonarSource.TfsAnnotate
 
                 if (!File.Exists(filenames[current]))
                 {
-                    // The download was not successful. Move on to the next file.
+                 // The download was not successful. Move on to the next file.
                     continue;
                 }
 
@@ -165,7 +170,7 @@ namespace SonarSource.TfsAnnotate
                 }
                 catch (Exception e)
                 {
-                    Trace.WriteLine(e.Message);
+                    Console.Error.WriteLine(e.Message);
                 }
                 finally
                 {
