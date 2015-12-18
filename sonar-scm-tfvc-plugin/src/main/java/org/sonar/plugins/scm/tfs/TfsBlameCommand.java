@@ -57,6 +57,7 @@ public class TfsBlameCommand extends BlameCommand {
 
       OutputStreamWriter stdin = new OutputStreamWriter(process.getOutputStream(), Charsets.UTF_8);
       BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream(), Charsets.UTF_8));
+      BufferedReader stderr = new BufferedReader(new InputStreamReader(process.getErrorStream(), Charsets.UTF_8));
 
       stdout.readLine();
       stdin.write(conf.username() + "\r\n");
@@ -68,7 +69,11 @@ public class TfsBlameCommand extends BlameCommand {
       stdin.write(conf.collectionUri() + "\r\n");
       stdin.flush();
 
-      stdout.readLine();
+      String annotationFailed = stdout.readLine();
+      if (annotationFailed.equals("AnnotationFailedOnProject")) {
+        LOG.error(stderr.readLine());
+        return;
+      }
 
       for (InputFile inputFile : input.filesToBlame()) {
         LOG.debug("TFS annotating: " + inputFile.absolutePath());
@@ -82,16 +87,16 @@ public class TfsBlameCommand extends BlameCommand {
         }
 
         String linesAsString = stdout.readLine();
-        if (linesAsString == null) {
+        if (linesAsString.equals("AnnotationFailedOnFile")) {
+          LOG.error(stderr.readLine());
+          continue;
+        }
+        if (linesAsString == null||linesAsString.equals("AnnotationFailedOnProject")) {
+          LOG.error(stderr.readLine());
           break;
         }
         int lines = Integer.parseInt(linesAsString, 10);
 
-        if (lines == 0) {
-          String reason = stdout.readLine();
-          LOG.info(reason);
-          continue;
-        }
 
         List<BlameLine> result = Lists.newArrayList();
         for (int i = 0; i < lines; i++) {
@@ -117,6 +122,7 @@ public class TfsBlameCommand extends BlameCommand {
         }
 
         output.blameResult(inputFile, result);
+        captureErrorStream(process);
       }
 
       stdin.close();
@@ -126,9 +132,11 @@ public class TfsBlameCommand extends BlameCommand {
         throw new IllegalStateException("The TFVC annotate command " + executable.getAbsolutePath() + " failed with exit code " + exitCode);
       }
     } catch (IOException e) {
-      throw Throwables.propagate(e);
+      LOG.error("IOException thrown in the TFVC annotate command : "+e.getMessage());
     } catch (InterruptedException e) {
-      throw Throwables.propagate(e);
+      LOG.error("InterruptedException thrown in the TFVC annotate command : "+e.getMessage());
+    } catch (IllegalStateException e) {
+      LOG.error("IllegalStateException thrown in the TFVC annotate command : " + e.getMessage());
     } finally {
       if (process != null) {
         captureErrorStream(process);
