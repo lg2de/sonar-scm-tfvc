@@ -128,15 +128,22 @@ public class TfsBlameCommandTest {
     File file = new File("src/test/resources/ko_non_existing.txt");
     DefaultInputFile inputFile = new DefaultInputFile("ko_non_existing", "ko_non_existing.txt").setAbsolutePath(file.getAbsolutePath());
 
+    File file2 = new File("src/test/resources/ok.txt");
+    DefaultInputFile inputFile2 = new DefaultInputFile("ok", "ok.txt").setAbsolutePath(file2.getAbsolutePath());
+
 
     BlameInput input = mock(BlameInput.class);
-    when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
+    when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile,inputFile2));
     BlameOutput output = mock(BlameOutput.class);
 
     command.blame(input, output);
     assertThat(appender.getErrorEvents()).containsExactly("" +
             "Exception on Annotating File");
-    verify(output, Mockito.never()).blameResult(Mockito.any(InputFile.class), Mockito.anyList());
+    verify(output).blameResult(
+            inputFile2,
+            Arrays.asList(
+                    new BlameLine().date(new Date(1430736199000L)).revision("26274").author("SND\\DinSoft_cp"),
+                    new BlameLine().date(new Date(1430736200000L)).revision("26275").author("SND\\DinSoft_cp")));
   }
 
   @Test
