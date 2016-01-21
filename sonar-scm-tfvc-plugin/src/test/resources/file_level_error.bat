@@ -8,3 +8,6 @@ SET /P p=
 ECHO %p%
 ECHO AnnotationFailedOnFile
 >&2 ECHO Exception on Annotating File
+SET /P p=
+ECHO %p%
+TYPE %p:/=\%
