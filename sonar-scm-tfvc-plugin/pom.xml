@@ -28,7 +28,7 @@
   </licenses>
   <issueManagement>
     <system>jira</system>
-    <url>http://jira.codehaus.org/browse/SONARTFVC</url>
+    <url>https://jira.sonarsource.com/browse/SONARTFVC</url>
   </issueManagement>
 
   <properties>
