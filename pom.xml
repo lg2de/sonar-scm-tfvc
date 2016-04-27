@@ -27,9 +27,9 @@
     </license>
   </licenses>
   <scm>
-    <connection>scm:git:git@github.com:SonarCommunity/sonar-scm-tfvc.git</connection>
-    <developerConnection>scm:git:git@github.com:SonarCommunity/sonar-scm-tfvc.git</developerConnection>
-    <url>https://github.com/SonarCommunity/sonar-scm-tfvc</url>
+    <connection>scm:git:git@github.com:SonarQubeCommunity/sonar-scm-tfvc.git</connection>
+    <developerConnection>scm:git:git@github.com:SonarQubeCommunity/sonar-scm-tfvc.git</developerConnection>
+    <url>https://github.com/SonarQubeCommunity/sonar-scm-tfvc</url>
     <tag>HEAD</tag>
   </scm>
 
