@@ -9,10 +9,12 @@ Auto-detection of the SCM provider will work if there is a "$tf" folder in the p
 For interacting with Team Foundation Server 2015 users need to enter the collection URI corresponding to the TFVC collection of the project. This property can be set and edited either through sonar-runner properties or the SonarQube Server.
 Optionally, you can configure additional properties:
 
-|Key|Description|Required|Default value|
-|sonar.tfvc.username|Username to be used for TFVC authentication.|Optional for Windows authentication or if already cached.|None|
-|sonar.tfvc.password.secured|Password to be used for TFVC authentication.|Optional for Windows authentication or if already cached.|None|
-|sonar.tfvc.collectionuri|URI corresponding to the TFVC collection of the project|Mandatory for working with Team Foundation Server 2015|None|
+| Key | Description | Required | Default value |
+| --- | --- | --- | --- |
+| sonar.tfvc.username | Username to be used for TFVC authentication. | Optional for Windows authentication or if already cached. | None |
+| sonar.tfvc.password.secured | Password to be used for TFVC authentication. | Optional for Windows authentication or if already cached. | None |
+| sonar.tfvc.collectionuri | URI corresponding to the TFVC collection of the project | Mandatory for working with Team Foundation Server 2015 | None |
+
 ### Known Limitations
 The annotation does not see through merging and branching changesets (See [SONARTFVC-7](https://jira.sonarsource.com/browse/SONARTFVC-7))
 Current version of the plugin does not support hosted builds on Visual Studio Online (VSO) (See [MMF-85](https://jira.sonarsource.com/browse/MMF-85))
