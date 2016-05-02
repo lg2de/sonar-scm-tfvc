@@ -16,8 +16,8 @@
   <name>SonarQube :: SCM :: TFVC</name>
   <inceptionYear>2014</inceptionYear>
   <organization>
-    <name>SonarSource</name>
-    <url>http://www.sonarsource.com</url>
+    <name>SonarSource et al.</name>
+    <url>https://github.com/SonarQubeCommunity/sonar-scm-tfvc/graphs/contributors</url>
   </organization>
   <licenses>
     <license>
