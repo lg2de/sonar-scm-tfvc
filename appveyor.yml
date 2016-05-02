@@ -14,7 +14,7 @@ environment:
   MSBUILD_PATH: C:\PROGRA~2\MSBuild\14.0\Bin\MSBuild.exe
 
 build_script:
-  - mvn clean install
+  - mvn clean install "--batch-mode"
 
 test: off
 
