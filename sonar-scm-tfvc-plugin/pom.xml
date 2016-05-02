@@ -27,7 +27,7 @@
     </license>
   </licenses>
   <issueManagement>
-    <system>jira</system>
+    <system>github</system>
     <url>https://github.com/SonarQubeCommunity/sonar-scm-tfvc/issues</url>
   </issueManagement>
 
