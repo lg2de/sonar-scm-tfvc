@@ -12,8 +12,8 @@
   <packaging>sonar-plugin</packaging>
 
   <name>SonarQube :: SCM :: TFVC :: Plugin</name>
-  <description>TFVC SCM Provider.</description>
-  <url>http://redirect.sonarsource.com/plugins/scmtfvc.html</url>
+  <description>TFVC SCM Provider for SonarQube</description>
+  <url>https://github.com/SonarQubeCommunity/sonar-scm-tfvc</url>
 
   <organization>
     <name>SonarSource</name>
@@ -28,7 +28,7 @@
   </licenses>
   <issueManagement>
     <system>jira</system>
-    <url>https://jira.sonarsource.com/browse/SONARTFVC</url>
+    <url>https://github.com/SonarQubeCommunity/sonar-scm-tfvc/issues</url>
   </issueManagement>
 
   <properties>
