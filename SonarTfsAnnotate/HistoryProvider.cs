@@ -10,7 +10,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using Microsoft.TeamFoundation.VersionControl.Client;
-
+using System.Linq;
 namespace SonarSource.TfsAnnotate
 {
     class HistoryProvider : IDisposable
@@ -42,28 +42,93 @@ namespace SonarSource.TfsAnnotate
                 {
                     throw new InvalidOperationException("Expected exactly 1 change, but got " + changeset.Changes.Length + " for ChangesetId " + changeset.ChangesetId);
                 }
-
-                this.changesets.Add(changeset);
-                filenames.Add(null);
-                manualResetEvents.Add(null);
-
-                var change = changeset.Changes[0];
-                if (change.ChangeType.HasFlag(ChangeType.Branch))
+				//Find changetype. If changetype is mergeset then get changeset for mergeset and add to list. If changetype is Add/Edit then add directly to list. 
+                if ((changeset.Changes[0].ChangeType.HasFlag(ChangeType.Merge) || changeset.Changes[0].ChangeType.HasFlag(ChangeType.Edit) || changeset.Changes[0].ChangeType.HasFlag(ChangeType.Add)) && !changeset.Changes[0].ChangeType.HasFlag(ChangeType.Branch))
                 {
-                    var branchHistoryTree = server.GetBranchHistory(new[] { new ItemSpec(change.Item.ServerItem, RecursionType.None) }, new ChangesetVersionSpec(changeset.ChangesetId));
-                    if (branchHistoryTree == null || branchHistoryTree.Length == 0 || branchHistoryTree[0].Length == 0)
+                    var t = GetMergedChangesets(changeset, server);
+                    if (t != null && t.Count > 0)
                     {
-                        continue;
+                        foreach (var a in t)
+                        {
+                            this.changesets.Add(a);
+                            filenames.Add(null);
+                            manualResetEvents.Add(null);
+                        }
                     }
-                    var item = branchHistoryTree[0][0].GetRequestedItem().Relative.BranchFromItem;
-                    if (item != null)
+                    else {
+                        this.changesets.Add(changeset);
+
+                        filenames.Add(null);
+                        manualResetEvents.Add(null);
+                    }
+                }
+                // If changetype is branch then find changeset for branchset in parent branch and add to list. If changeset in parent branch is mergeset then search for changeset against mergeset and add to list.
+                else if (changeset.Changes[0].ChangeType.HasFlag(ChangeType.Branch))
+                {
+                    var branchchangeset = GetMergedChangesets(changeset, server);
+                    var t = GetMergedChangesets(branchchangeset[0], server);
+                    if (t != null && t.Count > 0)
                     {
-                        FetchChangesets(server, item.ServerItem, new ChangesetVersionSpec(item.ChangesetId));
+                        foreach (var a in t)
+                        {
+                            this.changesets.Add(a);
+                            filenames.Add(null);
+                            manualResetEvents.Add(null);
+                        }
+                    }
+                    else {
+                        this.changesets.Add(changeset);
+
+                        filenames.Add(null);
+                        manualResetEvents.Add(null);
                     }
                 }
             }
         }
+        /// <summary>
+        /// Function to find merge changesets.
+        /// </summary>
+        /// <param name="changeset"></param>
+        /// <param name="versionControlServer"></param>
+        /// <returns></returns>
+        public static List<Changeset> GetMergedChangesets(Changeset changeset, VersionControlServer versionControlServer)
+        {
+            // remember the already covered changeset id's
+            Dictionary<int, bool> alreadyCoveredChangesets = new Dictionary<int, bool>();
 
+            // initialize list of parent changesets
+            List<Changeset> parentChangesets = new List<Changeset>();
+
+            // go through each change inside the changeset
+            foreach (Change change in changeset.Changes)
+            {
+                // query for the items' history
+                var queryResults = versionControlServer.QueryMergesExtended(
+                                        new ItemSpec(change.Item.ServerItem, RecursionType.Full),
+                                        new ChangesetVersionSpec(changeset.ChangesetId),
+                                        null,
+                                        null).ToList();
+                var queryResults1 = queryResults.OrderByDescending(t=>t.SourceChangeset.ChangesetId);
+                
+                // go through each changeset in the history
+                foreach (var result in queryResults1)
+                {
+                    // only if the target-change is the given changeset, we have a hit
+                    if (result.TargetChangeset.ChangesetId == changeset.ChangesetId)
+                    {
+                        // if that hit has already been processed elsewhere, then just skip it
+                        if (!alreadyCoveredChangesets.ContainsKey(result.SourceChangeset.ChangesetId))
+                        {
+                            // otherwise add it
+                            alreadyCoveredChangesets.Add(result.SourceChangeset.ChangesetId, true);
+                            parentChangesets.Add(versionControlServer.GetChangeset(result.SourceChangeset.ChangesetId));
+                        }
+                    }
+                }
+            }
+
+            return parentChangesets;
+        }
         public bool Next()
         {
             while (true)
