@@ -8,7 +8,7 @@ package org.sonar.plugins.scm.tfs;
 
 import org.junit.Test;
 import org.sonar.api.config.PropertyDefinitions;
-import org.sonar.api.config.Settings;
+import org.sonar.api.config.internal.MapSettings;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -16,8 +16,8 @@ public class TfsConfigurationTest {
 
   @Test
   public void sanityCheck() {
-    Settings settings = new Settings(new PropertyDefinitions(TfsConfiguration.getProperties()));
-    TfsConfiguration config = new TfsConfiguration(settings);
+	MapSettings settings = new MapSettings(new PropertyDefinitions(TfsConfiguration.getProperties()));
+    TfsConfiguration config = new TfsConfiguration(settings.asConfig());
 
     assertThat(config.username()).isEmpty();
     assertThat(config.password()).isEmpty();

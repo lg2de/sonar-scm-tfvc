@@ -20,6 +20,7 @@ import org.mockito.Mockito;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.fs.internal.DefaultInputFile;
+import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
 import org.sonar.api.batch.scm.BlameCommand.BlameInput;
 import org.sonar.api.batch.scm.BlameCommand.BlameOutput;
 import org.sonar.api.batch.scm.BlameLine;
@@ -57,7 +58,9 @@ public class TfsBlameCommandTest {
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);
 
     File file = new File("src/test/resources/ok.txt");
-    DefaultInputFile inputFile = new DefaultInputFile("ok", "ok.txt").setAbsolutePath(file.getAbsolutePath());
+    DefaultInputFile inputFile = new TestInputFileBuilder("ok", "ok.txt")
+            .setModuleBaseDir(file.toPath().getParent())
+            .build();
 
     BlameInput input = mock(BlameInput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
@@ -81,8 +84,10 @@ public class TfsBlameCommandTest {
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);
 
     File file = new File("src/test/resources/ok.txt");
-    DefaultInputFile inputFile = new DefaultInputFile("ok", "ok.txt").setAbsolutePath(file.getAbsolutePath());
-    inputFile.setLines(3);
+    DefaultInputFile inputFile = new TestInputFileBuilder("ok", "ok.txt")
+            .setModuleBaseDir(file.toPath().getParent())
+            .setLines(3)
+            .build();
 
     BlameInput input = mock(BlameInput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
@@ -107,7 +112,9 @@ public class TfsBlameCommandTest {
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);
 
     File file = new File("src/test/resources/invalid_output.txt");
-    DefaultInputFile inputFile = new DefaultInputFile("invalid_output", "invalid_output.txt").setAbsolutePath(file.getAbsolutePath());
+    DefaultInputFile inputFile = new TestInputFileBuilder("invalid_output", "invalid_output.txt")
+      .setModuleBaseDir(file.toPath().getParent())
+      .build();
 
     BlameInput input = mock(BlameInput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
@@ -126,10 +133,14 @@ public class TfsBlameCommandTest {
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);
 
     File file = new File("src/test/resources/ko_non_existing.txt");
-    DefaultInputFile inputFile = new DefaultInputFile("ko_non_existing", "ko_non_existing.txt").setAbsolutePath(file.getAbsolutePath());
+    DefaultInputFile inputFile = new TestInputFileBuilder("ko_non_existing", "ko_non_existing.txt")
+            .setModuleBaseDir(file.toPath().getParent())
+            .build();
 
     File file2 = new File("src/test/resources/ok.txt");
-    DefaultInputFile inputFile2 = new DefaultInputFile("ok", "ok.txt").setAbsolutePath(file2.getAbsolutePath());
+    DefaultInputFile inputFile2 = new TestInputFileBuilder("ok", "ok.txt")
+            .setModuleBaseDir(file2.toPath().getParent())
+            .build();
 
 
     BlameInput input = mock(BlameInput.class);
@@ -152,7 +163,9 @@ public class TfsBlameCommandTest {
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);
 
     File file = new File("src/test/resources/ko_non_existing.txt");
-    DefaultInputFile inputFile = new DefaultInputFile("ko_non_existing", "ko_non_existing.txt").setAbsolutePath(file.getAbsolutePath());
+    DefaultInputFile inputFile = new TestInputFileBuilder("ko_non_existing", "ko_non_existing.txt")
+            .setModuleBaseDir(file.toPath().getParent())
+            .build();
 
 
     BlameInput input = mock(BlameInput.class);
