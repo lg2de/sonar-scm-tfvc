@@ -6,33 +6,33 @@
  */
 package org.sonar.plugins.scm.tfs;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import org.sonar.api.BatchComponent;
 import org.sonar.api.CoreProperties;
 import org.sonar.api.PropertyType;
 import org.sonar.api.batch.InstantiationStrategy;
+import org.sonar.api.batch.ScannerSide;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.config.PropertyDefinition;
-import org.sonar.api.config.Settings;
 import org.sonar.api.resources.Qualifiers;
 
 import java.util.List;
 
+@ScannerSide
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
-public class TfsConfiguration implements BatchComponent {
+public class TfsConfiguration {
 
   private static final String CATEGORY = "TFVC";
   private static final String USERNAME_PROPERTY_KEY = "sonar.tfvc.username";
   private static final String PASSWORD_PROPERTY_KEY = "sonar.tfvc.password.secured";
   private static final String COLLECTIONURI_PROPERTY_KEY = "sonar.tfvc.collectionuri";
   private static final String PAT_PROPERTY_KEY = "sonar.tfvc.pat.secured";
-  private final Settings settings;
+  private final Configuration configuration;
 
-  public TfsConfiguration(Settings settings) {
-    this.settings = settings;
+  public TfsConfiguration(Configuration configuration) {
+    this.configuration = configuration;
   }
 
-  public static List<PropertyDefinition> getProperties() {
+  static List<PropertyDefinition> getPropertyDefinitions() {
     return ImmutableList.of(
       PropertyDefinition.builder(PAT_PROPERTY_KEY)
         .name("PersonalAccessToken")
@@ -73,19 +73,19 @@ public class TfsConfiguration implements BatchComponent {
   }
 
   public String username() {
-    return Strings.nullToEmpty(settings.getString(USERNAME_PROPERTY_KEY));
+    return configuration.get(USERNAME_PROPERTY_KEY).orElse("");
   }
 
   public String password() {
-    return Strings.nullToEmpty(settings.getString(PASSWORD_PROPERTY_KEY));
+    return configuration.get(PASSWORD_PROPERTY_KEY).orElse("");
   }
 
   public String collectionUri() {
-    return Strings.nullToEmpty(settings.getString(COLLECTIONURI_PROPERTY_KEY));
+    return configuration.get(COLLECTIONURI_PROPERTY_KEY).orElse("");
   }
 
   public String pat() {
-    return Strings.nullToEmpty(settings.getString(PAT_PROPERTY_KEY));
+    return configuration.get(PAT_PROPERTY_KEY).orElse("");
   }
 
 }

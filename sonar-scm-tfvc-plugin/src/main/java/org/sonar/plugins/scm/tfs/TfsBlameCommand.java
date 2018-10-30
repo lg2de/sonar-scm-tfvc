@@ -8,31 +8,26 @@ package org.sonar.plugins.scm.tfs;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.util.Date;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.scm.BlameCommand;
 import org.sonar.api.batch.scm.BlameLine;
 import org.sonar.api.utils.TempFolder;
+import org.sonar.api.utils.log.Logger;
+import org.sonar.api.utils.log.Loggers;
+
+import java.io.*;
+import java.util.Date;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TfsBlameCommand extends BlameCommand {
 
-  private static final Logger LOG = LoggerFactory.getLogger(TfsBlameCommand.class);
+  private static final Logger LOG = Loggers.get(TfsBlameCommand.class);
   private static final Pattern LINE_PATTERN = Pattern.compile("([^\t]++)\t([^\t]++)\t([^\t]++)");
 
   private final TfsConfiguration conf;
@@ -76,19 +71,18 @@ public class TfsBlameCommand extends BlameCommand {
       }
 
       for (InputFile inputFile : input.filesToBlame()) {
-        LOG.debug("TFS annotating: " + inputFile.absolutePath());
+        LOG.debug("TFS annotating: " + inputFile.toString());
 
-        stdin.write(inputFile.absolutePath() + "\r\n");
+        stdin.write(inputFile.toString() + "\r\n");
         stdin.flush();
 
         String path = stdout.readLine();
-        if (!inputFile.absolutePath().equals(path)) {
-          throw new IllegalStateException("Expected the file paths to match: " + inputFile.absolutePath() + " and " + path);
+        if (!inputFile.toString().equals(path)) {
+          throw new IllegalStateException("Expected the file paths to match: " + inputFile.toString() + " and " + path);
         }
 
         String linesAsString = stdout.readLine();
         if (linesAsString.equals("AnnotationFailedOnFile")) {
-          LOG.error(stderr.readLine());
           continue;
         }
         if (linesAsString == null||linesAsString.equals("AnnotationFailedOnProject")) {
@@ -141,7 +135,7 @@ public class TfsBlameCommand extends BlameCommand {
       if (process != null) {
         captureErrorStream(process);
         Closeables.closeQuietly(process.getInputStream());
-        Closeables.closeQuietly(process.getOutputStream());
+//        Closeables.closeQuietly(process.getOutputStream());
         Closeables.closeQuietly(process.getErrorStream());
         process.destroy();
       }

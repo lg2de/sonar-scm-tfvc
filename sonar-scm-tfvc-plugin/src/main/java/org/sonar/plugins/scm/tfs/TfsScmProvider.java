@@ -33,5 +33,4 @@ public class TfsScmProvider extends ScmProvider {
   public BlameCommand blameCommand() {
     return this.blameCommand;
   }
-
 }
