@@ -6,7 +6,7 @@ cache:
 
 install:
   - set MAVEN_VERSION=3.6.1
-  - choco install maven -version %MAVEN_VERSION%
+  - choco install maven --version %MAVEN_VERSION%
   - refreshenv
   - set PATH=%PATH%;C:\bin\apache-maven-%MAVEN_VERSION%\bin
 
@@ -17,6 +17,6 @@ before_build:
   - nuget restore
 
 build_script:
-  - mvn clean install "--batch-mode"
+  - mvn clean install --batch-mode
 
 test: off
