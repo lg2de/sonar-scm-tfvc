@@ -11,7 +11,7 @@ install:
   - set PATH=%PATH%;C:\bin\apache-maven-%MAVEN_VERSION%\bin
 
 environment:
-  MSBUILD_PATH: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe
+  MSBUILD_PATH: C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe
 
 before_build:
   - nuget restore
