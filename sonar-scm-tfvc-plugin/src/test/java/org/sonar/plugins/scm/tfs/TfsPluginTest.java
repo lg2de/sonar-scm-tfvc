@@ -7,6 +7,7 @@
 package org.sonar.plugins.scm.tfs;
 
 import org.junit.Test;
+import org.sonar.api.Plugin.Context;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -14,7 +15,9 @@ public class TfsPluginTest {
 
   @Test
   public void getExtensions() {
-    assertThat(new TfsPlugin().getExtensions()).hasSize(3 + TfsConfiguration.getProperties().size());
+    Context cntx = new Context(null);
+    new TfsPlugin().define(cntx);
+    assertThat(cntx.getExtensions()).hasSize(3 + TfsConfiguration.getProperties().size());
   }
 
 }

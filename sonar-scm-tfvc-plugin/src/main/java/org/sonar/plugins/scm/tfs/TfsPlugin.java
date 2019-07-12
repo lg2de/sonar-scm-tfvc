@@ -6,25 +6,18 @@
  */
 package org.sonar.plugins.scm.tfs;
 
-import com.google.common.collect.ImmutableList;
-import org.sonar.api.SonarPlugin;
+import org.sonar.api.Plugin;
 
-import java.util.List;
-
-public class TfsPlugin extends SonarPlugin {
+public class TfsPlugin implements Plugin {
 
   @Override
-  public List getExtensions() {
-    ImmutableList.Builder builder = ImmutableList.builder();
-
-    builder.add(
+  public void define(Context context) {
+    context.addExtensions(
       TfsScmProvider.class,
       TfsBlameCommand.class,
       TfsConfiguration.class);
 
-    builder.addAll(TfsConfiguration.getProperties());
-
-    return builder.build();
+    context.addExtensions(TfsConfiguration.getProperties());
   }
 
 }

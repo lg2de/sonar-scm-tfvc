@@ -6,29 +6,29 @@
  */
 package org.sonar.plugins.scm.tfs;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import org.sonar.api.BatchComponent;
 import org.sonar.api.CoreProperties;
 import org.sonar.api.PropertyType;
 import org.sonar.api.batch.InstantiationStrategy;
+import org.sonar.api.batch.ScannerSide;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.config.PropertyDefinition;
-import org.sonar.api.config.Settings;
 import org.sonar.api.resources.Qualifiers;
 
 import java.util.List;
 
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
-public class TfsConfiguration implements BatchComponent {
+@ScannerSide()
+public class TfsConfiguration {
 
   private static final String CATEGORY = "TFVC";
   private static final String USERNAME_PROPERTY_KEY = "sonar.tfvc.username";
   private static final String PASSWORD_PROPERTY_KEY = "sonar.tfvc.password.secured";
   private static final String COLLECTIONURI_PROPERTY_KEY = "sonar.tfvc.collectionuri";
   private static final String PAT_PROPERTY_KEY = "sonar.tfvc.pat.secured";
-  private final Settings settings;
+  private final Configuration settings;
 
-  public TfsConfiguration(Settings settings) {
+  public TfsConfiguration(Configuration settings) {
     this.settings = settings;
   }
 
@@ -73,19 +73,19 @@ public class TfsConfiguration implements BatchComponent {
   }
 
   public String username() {
-    return Strings.nullToEmpty(settings.getString(USERNAME_PROPERTY_KEY));
+    return settings.get(USERNAME_PROPERTY_KEY).orElse("");
   }
 
   public String password() {
-    return Strings.nullToEmpty(settings.getString(PASSWORD_PROPERTY_KEY));
+    return settings.get(PASSWORD_PROPERTY_KEY).orElse("");
   }
 
   public String collectionUri() {
-    return Strings.nullToEmpty(settings.getString(COLLECTIONURI_PROPERTY_KEY));
+    return settings.get(COLLECTIONURI_PROPERTY_KEY).orElse("");
   }
 
   public String pat() {
-    return Strings.nullToEmpty(settings.getString(PAT_PROPERTY_KEY));
+    return settings.get(PAT_PROPERTY_KEY).orElse("");
   }
 
 }
