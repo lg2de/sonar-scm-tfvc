@@ -17,6 +17,6 @@ before_build:
   - nuget restore
 
 build_script:
-  - mvn clean install --batch-mode
+  - mvn clean package --batch-mode
 
 test: off
