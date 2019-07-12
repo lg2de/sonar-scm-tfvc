@@ -13,11 +13,11 @@
 
   <name>SonarQube :: SCM :: TFVC :: Plugin</name>
   <description>TFVC SCM Provider for SonarQube</description>
-  <url>https://github.com/SonarQubeCommunity/sonar-scm-tfvc</url>
+  <url>https://github.com/lg2de/sonar-scm-tfvc</url>
 
   <organization>
-    <name>SonarSource et al.</name>
-    <url>https://github.com/SonarQubeCommunity/sonar-scm-tfvc/graphs/contributors</url>
+    <name>Community</name>
+    <url>https://github.com/lg2de/sonar-scm-tfvc/graphs/contributors</url>
   </organization>
   <licenses>
     <license>
@@ -28,7 +28,7 @@
   </licenses>
   <issueManagement>
     <system>github</system>
-    <url>https://github.com/SonarQubeCommunity/sonar-scm-tfvc/issues</url>
+    <url>https://github.com/lg2de/sonar-scm-tfvc/issues</url>
   </issueManagement>
 
   <properties>

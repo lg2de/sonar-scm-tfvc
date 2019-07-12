@@ -24,11 +24,15 @@
     </license>
   </licenses>
   <scm>
-    <connection>scm:git:git@github.com:SonarQubeCommunity/sonar-scm-tfvc.git</connection>
-    <developerConnection>scm:git:git@github.com:SonarQubeCommunity/sonar-scm-tfvc.git</developerConnection>
-    <url>https://github.com/SonarQubeCommunity/sonar-scm-tfvc</url>
+    <connection>scm:git:git@github.com:lg2de/sonar-scm-tfvc.git</connection>
+    <developerConnection>scm:git:git@github.com:lg2de/sonar-scm-tfvc.git</developerConnection>
+    <url>https://github.com/lg2de/sonar-scm-tfvc</url>
     <tag>HEAD</tag>
   </scm>
+  <organization>
+    <name>Community</name>
+    <url>https://github.com/lg2de/sonar-scm-tfvc/graphs/contributors</url>
+  </organization>
 
   <developers>
     <developer>
