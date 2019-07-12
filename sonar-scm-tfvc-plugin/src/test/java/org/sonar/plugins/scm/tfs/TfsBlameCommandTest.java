@@ -184,7 +184,7 @@ public class TfsBlameCommandTest {
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);
     command.blame(mock(BlameInput.class), mock(BlameOutput.class));
     assertThat(appender.getErrorEvents().get(0)).startsWith("IOException thrown in the TFVC annotate command :");
-    assertThat(appender.getErrorEvents().get(1)).isEqualTo("error stream string 1\r\nerror stream string 2\r\n");
+    assertThat(appender.getErrorEvents().get(1)).isEqualTo("error stream string 1 \r\nerror stream string 2 \r\n");
   }
 
   private static Logger getRootLogger() {
