@@ -183,8 +183,8 @@ public class TfsBlameCommandTest {
     File executable = new File("src/test/resources/error_stream.bat");
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);
     command.blame(mock(BlameInput.class), mock(BlameOutput.class));
-    String[] errArray = {"IOException thrown in the TFVC annotate command : The pipe is being closed","error stream string 1\r\nerror stream string 2\r\n"};
-    assertThat(appender.getErrorEvents()).containsExactly(errArray);
+    assertThat(appender.getErrorEvents().get(0)).startsWith("IOException thrown in the TFVC annotate command :");
+    assertThat(appender.getErrorEvents().get(1)).isEqualTo("error stream string 1\r\nerror stream string 2\r\n");
   }
 
   private static Logger getRootLogger() {
