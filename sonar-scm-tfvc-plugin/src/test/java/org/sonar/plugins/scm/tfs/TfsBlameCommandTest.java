@@ -122,8 +122,8 @@ public class TfsBlameCommandTest {
     BlameOutput output = mock(BlameOutput.class);
 
     command.blame(input, output);
-    assertThat(appender.getErrorEvents()).containsExactly("" +
-            "IllegalStateException thrown in the TFVC annotate command : Invalid output from the TFVC annotate command: \"hello world!\" on file: " + inputFile.absolutePath() + " at line 1");
+    assertThat(appender.getErrorEvents()).containsExactly(
+      "SCM-TFVC: IllegalStateException thrown in the TFVC annotate command : Invalid output from the TFVC annotate command: \"hello world!\" on file: " + inputFile.absolutePath() + " at line 1");
     verify(output, Mockito.never()).blameResult(Mockito.any(InputFile.class), Mockito.anyList());
   }
 
@@ -148,8 +148,7 @@ public class TfsBlameCommandTest {
     BlameOutput output = mock(BlameOutput.class);
 
     command.blame(input, output);
-    assertThat(appender.getErrorEvents()).containsExactly("" +
-            "Exception on Annotating File");
+    assertThat(appender.getErrorEvents()).containsExactly("SCM-TFVC: Exception on Annotating File");
     verify(output).blameResult(
             inputFile2,
             Arrays.asList(
@@ -173,8 +172,7 @@ public class TfsBlameCommandTest {
     BlameOutput output = mock(BlameOutput.class);
 
     command.blame(input, output);
-    assertThat(appender.getErrorEvents()).containsExactly("" +
-            "Exception on Annotating Project");
+    assertThat(appender.getErrorEvents()).containsExactly("SCM-TFVC: Exception on Annotating Project");
     verify(output, Mockito.never()).blameResult(Mockito.any(InputFile.class), Mockito.anyList());
   }
 
@@ -183,8 +181,8 @@ public class TfsBlameCommandTest {
     File executable = new File("src/test/resources/error_stream.bat");
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);
     command.blame(mock(BlameInput.class), mock(BlameOutput.class));
-    assertThat(appender.getErrorEvents().get(0)).startsWith("IOException thrown in the TFVC annotate command :");
-    assertThat(appender.getErrorEvents().get(1)).isEqualTo("error stream string 1 \r\nerror stream string 2 \r\n");
+    assertThat(appender.getErrorEvents().get(0)).startsWith("SCM-TFVC: IOException thrown in the TFVC annotate command :");
+    assertThat(appender.getErrorEvents().get(1)).isEqualTo("SCM-TFVC: error stream string 1 \r\nerror stream string 2 \r\n");
   }
 
   private static Logger getRootLogger() {
