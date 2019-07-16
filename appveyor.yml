@@ -20,3 +20,7 @@ build_script:
   - mvn clean package --batch-mode
 
 test: off
+
+artifacts:
+- path: sonar-scm-tfvc-plugin/target/*.jar
+  name: plugin

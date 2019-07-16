@@ -1,21 +1,17 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
   <parent>
     <groupId>org.sonarsource.parent</groupId>
     <artifactId>parent</artifactId>
     <version>31</version>
   </parent>
-
   <groupId>org.sonarsource.tfvc</groupId>
   <artifactId>sonar-scm-tfvc</artifactId>
-  <version>2.2-SNAPSHOT</version>
+  <version>2.3-SNAPSHOT</version>
   <packaging>pom</packaging>
-
   <name>SonarQube :: SCM :: TFVC</name>
   <inceptionYear>2014</inceptionYear>
-
   <licenses>
     <license>
       <name>MIT</name>
@@ -24,12 +20,15 @@
     </license>
   </licenses>
   <scm>
-    <connection>scm:git:git@github.com:SonarQubeCommunity/sonar-scm-tfvc.git</connection>
-    <developerConnection>scm:git:git@github.com:SonarQubeCommunity/sonar-scm-tfvc.git</developerConnection>
-    <url>https://github.com/SonarQubeCommunity/sonar-scm-tfvc</url>
+    <connection>scm:git:git@github.com:lg2de/sonar-scm-tfvc.git</connection>
+    <developerConnection>scm:git:git@github.com:lg2de/sonar-scm-tfvc.git</developerConnection>
+    <url>https://github.com/lg2de/sonar-scm-tfvc</url>
     <tag>HEAD</tag>
   </scm>
-
+  <organization>
+    <name>Community</name>
+    <url>https://github.com/lg2de/sonar-scm-tfvc/graphs/contributors</url>
+  </organization>
   <developers>
     <developer>
       <id>dbolkensteyn</id>
@@ -42,13 +41,12 @@
       <timezone>+1</timezone>
     </developer>
   </developers>
-
   <modules>
     <module>SonarTfsAnnotate</module>
     <module>sonar-scm-tfvc-plugin</module>
   </modules>
   <build>
-      <plugins>
+    <plugins>
       <!-- check copyright/license headers -->
       <plugin>
         <inherited>false</inherited>
@@ -85,6 +83,6 @@
           </execution>
         </executions>
       </plugin>
-      </plugins>
+    </plugins>
   </build>
 </project>
