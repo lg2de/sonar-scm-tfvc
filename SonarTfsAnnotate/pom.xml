@@ -27,7 +27,7 @@
               <workingDirectory>.</workingDirectory>
               <arguments>
                 <argument>/property:Configuration=Release</argument>
-                <argument>/target:clean</argument>
+                <argument>/target:Clean</argument>
               </arguments>
             </configuration>
           </execution>
@@ -41,7 +41,7 @@
               <executable>${env.MSBUILD_PATH}</executable>
               <workingDirectory>.</workingDirectory>
               <arguments>
-                <argument>/t:Rebuild</argument>
+                <argument>/t:Build</argument>
                 <argument>/property:Configuration=Release</argument>
               </arguments>
             </configuration>
