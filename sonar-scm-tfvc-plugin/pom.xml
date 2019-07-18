@@ -86,6 +86,12 @@
       <version>1.4</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.jacoco</groupId>
+      <artifactId>org.jacoco.core</artifactId>
+      <version>0.8.4</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -114,25 +120,55 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.4</version>
+        <executions>
+          <!-- set arg line property for surefire -->
+          <execution>
+            <id>prepare-agent</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+            <configuration>
+              <propertyName>surefireArgLine</propertyName>
+            </configuration>
+          </execution>
+          <!-- set arg line property for failsafe -->
+          <execution>
+            <id>prepare-agent-integration</id>
+            <goals>
+              <goal>prepare-agent-integration</goal>
+            </goals>
+            <configuration>
+              <propertyName>failsafeArgLine</propertyName>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.19.1</version>
+        <configuration>
+          <!-- Sets the VM argument line used when unit tests are run. -->
+          <argLine>${surefireArgLine}</argLine>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>2.19.1</version>
         <executions>
           <execution>
-            <id>enforce-plugin-size</id>
+            <id>integration-test</id>
             <goals>
-              <goal>enforce</goal>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
             </goals>
-            <phase>verify</phase>
             <configuration>
-              <rules>
-                <requireFilesSize>
-                  <maxsize>20000</maxsize>
-                  <minsize>10000</minsize>
-                  <files>
-                    <file>${project.build.directory}/${project.build.finalName}.jar</file>
-                  </files>
-                </requireFilesSize>
-              </rules>
+              <!-- Sets the VM argument line used when integration tests are run. -->
+              <argLine>${failsafeArgLine}</argLine>
             </configuration>
           </execution>
         </executions>
