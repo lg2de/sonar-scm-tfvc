@@ -130,7 +130,7 @@ namespace SonarSource.TfsAnnotate
                             for (int i = 0; !failed && i < annotatedFile.Lines(); i++)
                             {
                                 var state = annotatedFile.State(i);
-                                if (state != AnnotationState.COMMITTED)
+                                if (state != AnnotationState.Committed)
                                 {
                                     FailOnFile("line " + (i + 1) + " has not yet been checked-in (" + state + "): " + path);
                                     failed = true;
@@ -211,13 +211,13 @@ namespace SonarSource.TfsAnnotate
         private static void FailOnFile(string reason)
         {
             Console.Out.WriteLine("AnnotationFailedOnFile");
-            Console.Error.WriteLine("Unable to TFS annotate the following file which " + reason);
+            Console.Error.WriteLine("Unable to annotate the following file which " + reason);
         }
 
         private static void FailOnProject(string reason)
         {
             Console.Out.WriteLine("AnnotationFailedOnProject");
-            Console.Error.WriteLine("Unable to TFS annotate the project which " + reason);
+            Console.Error.WriteLine("Unable to annotate the project which " + reason);
         }
     }
 }

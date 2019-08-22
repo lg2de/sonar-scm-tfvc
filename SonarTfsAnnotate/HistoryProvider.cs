@@ -6,7 +6,6 @@
  */
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using Microsoft.TeamFoundation.VersionControl.Client;
@@ -15,10 +14,10 @@ namespace SonarSource.TfsAnnotate
 {
     class HistoryProvider : IDisposable
     {
-        private const int PREFETCH_SIZE = 10;
+        private const int PrefetchSize = 10;
 
         private readonly List<Changeset> changesets = new List<Changeset>();
-        private readonly List<string> filenames = new List<string>();
+        private readonly List<string> fileNames = new List<string>();
         private readonly List<ManualResetEvent> manualResetEvents = new List<ManualResetEvent>();
 
         private int current = -1;
@@ -27,7 +26,7 @@ namespace SonarSource.TfsAnnotate
         {
             FetchChangesets(server, path, version);
 
-            for (int i = 0; i < PREFETCH_SIZE && i < this.changesets.Count; i++)
+            for (int i = 0; i < PrefetchSize && i < this.changesets.Count; i++)
             {
                 Prefetch(i);
             }
@@ -35,8 +34,8 @@ namespace SonarSource.TfsAnnotate
 
         private void FetchChangesets(VersionControlServer server, string path, VersionSpec version)
         {
-            var changesets = server.QueryHistory(path, version, 0, RecursionType.None, null, null, version, int.MaxValue, true, false, true, false);
-            foreach (Changeset changeset in changesets)
+            var history = server.QueryHistory(path, version, 0, RecursionType.None, null, null, version, int.MaxValue, true, false, true, false);
+            foreach (Changeset changeset in history)
             {
                 if (changeset.Changes.Length != 1)
                 {
@@ -44,7 +43,7 @@ namespace SonarSource.TfsAnnotate
                 }
 
                 this.changesets.Add(changeset);
-                filenames.Add(null);
+                fileNames.Add(null);
                 manualResetEvents.Add(null);
 
                 var change = changeset.Changes[0];
@@ -79,14 +78,14 @@ namespace SonarSource.TfsAnnotate
                     return false;
                 }
 
-                if (current + PREFETCH_SIZE < changesets.Count)
+                if (current + PrefetchSize < changesets.Count)
                 {
-                    Prefetch(current + PREFETCH_SIZE);
+                    Prefetch(current + PrefetchSize);
                 }
 
                 manualResetEvents[current].WaitOne();
 
-                if (!File.Exists(filenames[current]))
+                if (!File.Exists(fileNames[current]))
                 {
                  // The download was not successful. Move on to the next file.
                     continue;
@@ -105,7 +104,7 @@ namespace SonarSource.TfsAnnotate
         public string Filename()
         {
             ThrowIfNoElement();
-            return filenames[current];
+            return fileNames[current];
         }
 
         public void Dispose()
@@ -119,10 +118,10 @@ namespace SonarSource.TfsAnnotate
         private void Dispose(int i)
         {
             changesets[i] = null;
-            if (filenames[i] != null)
+            if (fileNames[i] != null)
             {
-                File.Delete(filenames[i]);
-                filenames[i] = null;
+                File.Delete(fileNames[i]);
+                fileNames[i] = null;
             }
             if (manualResetEvents[i] != null)
             {
@@ -143,9 +142,9 @@ namespace SonarSource.TfsAnnotate
         private void Prefetch(int i)
         {
             Item item = changesets[i].Changes[0].Item;
-            filenames[i] = Path.GetTempFileName();
+            fileNames[i] = Path.GetTempFileName();
             manualResetEvents[i] = new ManualResetEvent(false);
-            Prefetcher prefetcher = new Prefetcher(item, filenames[i], manualResetEvents[i]);
+            Prefetcher prefetcher = new Prefetcher(item, fileNames[i], manualResetEvents[i]);
             ThreadPool.QueueUserWorkItem(prefetcher.Prefetch);
         }
 
