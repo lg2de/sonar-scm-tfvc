@@ -21,7 +21,7 @@ public class TestAppender extends ConsoleAppender {
     ILoggingEvent event = (ILoggingEvent) eventObject;
 
     if (event.getLevel() == Level.ERROR) {
-      errorEvents.add(event.getMessage());
+      errorEvents.add(event.getFormattedMessage());
     }
   }
 
