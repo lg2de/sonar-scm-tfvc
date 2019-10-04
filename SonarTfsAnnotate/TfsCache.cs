@@ -33,7 +33,7 @@ namespace SonarSource.TfsAnnotate
 
         public void Dispose()
         {
-            foreach (var teamCollection in teamCollectionCache.Values)
+            foreach (var teamCollection in this.teamCollectionCache.Values)
             {
                 teamCollection.Dispose();
             }
@@ -41,12 +41,12 @@ namespace SonarSource.TfsAnnotate
 
         private TfsTeamProjectCollection GetTeamProjectCollection(Uri serverUri)
         {
-            if (!teamCollectionCache.TryGetValue(serverUri, out var result))
+            if (!this.teamCollectionCache.TryGetValue(serverUri, out var result))
             {
                 // create new connection, validate and store
-                result = new TfsTeamProjectCollection(serverUri, credentials);
+                result = new TfsTeamProjectCollection(serverUri, this.credentials);
                 result.EnsureAuthenticated();
-                teamCollectionCache[serverUri] = result;
+                this.teamCollectionCache[serverUri] = result;
             }
 
             return result;
@@ -54,17 +54,17 @@ namespace SonarSource.TfsAnnotate
 
         public void EnsureAuthenticated(Uri serverUri)
         {
-            GetTeamProjectCollection(serverUri).EnsureAuthenticated();
+            this.GetTeamProjectCollection(serverUri).EnsureAuthenticated();
         }
 
         public VersionControlServer GetVersionControlServer(Uri serverUri)
         {
-            return GetTeamProjectCollection(serverUri).GetService<VersionControlServer>();
+            return this.GetTeamProjectCollection(serverUri).GetService<VersionControlServer>();
         }
 
         private IIdentityManagementService GetIdentityManagementService(Uri serverUri)
         {
-            return GetTeamProjectCollection(serverUri).GetService<IIdentityManagementService>();
+            return this.GetTeamProjectCollection(serverUri).GetService<IIdentityManagementService>();
         }
 
         public string GetEmailOrAccountName(Uri serverUri, string accountName)
@@ -76,9 +76,9 @@ namespace SonarSource.TfsAnnotate
             }
 
             var key = Tuple.Create(serverUri, accountName);
-            if (!emailCache.TryGetValue(key, out string result))
+            if (!this.emailCache.TryGetValue(key, out string result))
             {
-                var service = GetIdentityManagementService(serverUri);
+                var service = this.GetIdentityManagementService(serverUri);
                 var identity = service.ReadIdentity(
                     IdentitySearchFactor.AccountName,
                     accountName,
@@ -105,7 +105,7 @@ namespace SonarSource.TfsAnnotate
                     }
                 }
 
-                emailCache[key] = result;
+                this.emailCache[key] = result;
             }
 
             return result;
