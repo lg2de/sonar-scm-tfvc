@@ -1,3 +1,0 @@
-0
-26274 SND\DinSoft_cp 1430736199000 hello,
-26275 SND\DinSoft_cp 1430736200000 world!

@@ -45,6 +45,10 @@ public class TfsBlameCommand extends BlameCommand {
 
   @VisibleForTesting
   public TfsBlameCommand(TfsConfiguration conf, File executable) {
+    if (conf.collectionUri().isEmpty()) {
+      throw new IllegalArgumentException("Missing configuration for CollectionUri.");
+    }
+
     this.conf = conf;
     this.executable = executable;
   }
