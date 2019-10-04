@@ -7,9 +7,11 @@
 using System;
 using System.IO;
 using System.Text;
-using Microsoft.TeamFoundation.Client;
+using Microsoft.VisualStudio.Services.Common;
 using Microsoft.TeamFoundation.VersionControl.Client;
 using System.Net;
+
+using WindowsCredential = Microsoft.VisualStudio.Services.Common.WindowsCredential;
 
 namespace SonarSource.TfsAnnotate
 {
@@ -37,21 +39,20 @@ namespace SonarSource.TfsAnnotate
                 var password = Console.ReadLine();
                 var pat = Console.ReadLine();
 
-                TfsClientCredentials credentials;
+                VssCredentials credentials;
 
                 if (!String.IsNullOrEmpty(pat))
                 {
-                    credentials = new TfsClientCredentials(new BasicAuthCredential(new NetworkCredential("", pat)));
+                    credentials = new VssCredentials(new VssBasicCredential(new NetworkCredential("", pat)));
                 }
                 else if (!String.IsNullOrEmpty(username) || !String.IsNullOrEmpty(password))
                 {
-                    credentials = new TfsClientCredentials(new WindowsCredential(new NetworkCredential(username, password)));
+                    credentials = new VssCredentials(new WindowsCredential(new NetworkCredential(username, password)));
                 }
                 else
                 {
-                    credentials = new TfsClientCredentials(true);
+                    credentials = new VssCredentials(true);
                 }
-                credentials.AllowInteractive = false;
 
                 Console.WriteLine("Enter the Collection URI");
                 Console.Out.Flush();
@@ -129,7 +130,7 @@ namespace SonarSource.TfsAnnotate
                             for (int i = 0; !failed && i < annotatedFile.Lines(); i++)
                             {
                                 var state = annotatedFile.State(i);
-                                if (state != AnnotationState.COMMITTED)
+                                if (state != AnnotationState.Committed)
                                 {
                                     FailOnFile("line " + (i + 1) + " has not yet been checked-in (" + state + "): " + path);
                                     failed = true;
@@ -210,13 +211,13 @@ namespace SonarSource.TfsAnnotate
         private static void FailOnFile(string reason)
         {
             Console.Out.WriteLine("AnnotationFailedOnFile");
-            Console.Error.WriteLine("Unable to TFS annotate the following file which " + reason);
+            Console.Error.WriteLine("Unable to annotate the following file which " + reason);
         }
 
         private static void FailOnProject(string reason)
         {
             Console.Out.WriteLine("AnnotationFailedOnProject");
-            Console.Error.WriteLine("Unable to TFS annotate the project which " + reason);
+            Console.Error.WriteLine("Unable to annotate the project which " + reason);
         }
     }
 }

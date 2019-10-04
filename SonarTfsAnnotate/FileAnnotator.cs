@@ -93,10 +93,7 @@ namespace SonarSource.TfsAnnotate
                     currentPath = previousPath;
                 }
 
-                if (annotatedFile != null)
-                {
-                    annotatedFile.Apply(currentChangeset);
-                }
+                annotatedFile?.Apply(currentChangeset);
             }
 
             return annotatedFile;
@@ -125,8 +122,8 @@ namespace SonarSource.TfsAnnotate
 
         private sealed class AnnotatedFile : IAnnotatedFile
         {
-            private const int UNKNOWN = -1;
-            private const int LOCAL = 0;
+            private const int UnknownIdentifier = -1;
+            private const int LocalIdentifier = 0;
 
             private readonly bool isBinary;
             private readonly string[] data;
@@ -149,7 +146,7 @@ namespace SonarSource.TfsAnnotate
                     mappings = new int[lines];
                     for (int i = 0; i < lines; i++)
                     {
-                        revisions[i] = UNKNOWN;
+                        revisions[i] = UnknownIdentifier;
                         mappings[i] = i;
                     }
                 }
@@ -159,7 +156,7 @@ namespace SonarSource.TfsAnnotate
             {
                 for (int i = 0; i < revisions.Length; i++)
                 {
-                    if (revisions[i] == UNKNOWN)
+                    if (revisions[i] == UnknownIdentifier)
                     {
                         Associate(i, changeset);
                     }
@@ -172,7 +169,7 @@ namespace SonarSource.TfsAnnotate
 
                 for (int i = 0; i < revisions.Length; i++)
                 {
-                    if (revisions[i] == UNKNOWN)
+                    if (revisions[i] == UnknownIdentifier)
                     {
                         int line = mappings[i];
                         if (!diff.ContainsKey(line))
@@ -192,7 +189,7 @@ namespace SonarSource.TfsAnnotate
 
             private void Associate(int line, Changeset changeset)
             {
-                int changesetId = changeset != null ? changeset.ChangesetId : LOCAL;
+                int changesetId = changeset?.ChangesetId ?? LocalIdentifier;
                 revisions[line] = changesetId;
                 if (!changesets.ContainsKey(changesetId))
                 {
@@ -222,12 +219,12 @@ namespace SonarSource.TfsAnnotate
                 ThrowIfBinaryFile();
                 switch (revisions[line])
                 {
-                    case UNKNOWN:
-                        return AnnotationState.UNKNOWN;
-                    case LOCAL:
-                        return AnnotationState.LOCAL;
+                    case UnknownIdentifier:
+                        return AnnotationState.Unknown;
+                    case LocalIdentifier:
+                        return AnnotationState.Local;
                     default:
-                        return AnnotationState.COMMITTED;
+                        return AnnotationState.Committed;
                 }
             }
 
@@ -243,7 +240,7 @@ namespace SonarSource.TfsAnnotate
                 {
                     throw new InvalidOperationException("Not supported on binary files!");
                 }
-            }     
+            }
         }
     }
 
@@ -262,8 +259,8 @@ namespace SonarSource.TfsAnnotate
 
     public enum AnnotationState
     {
-        UNKNOWN,
-        LOCAL,
-        COMMITTED
+        Unknown,
+        Local,
+        Committed
     }
 }
