@@ -4,33 +4,46 @@
  *
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.Framework.Client;
 using Microsoft.TeamFoundation.Framework.Common;
 using Microsoft.TeamFoundation.VersionControl.Client;
 using Microsoft.VisualStudio.Services.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace SonarSource.TfsAnnotate
 {
-    class TfsCache : IDisposable
+    internal class TfsCache : IDisposable
     {
         private readonly VssCredentials credentials;
-        private readonly IDictionary<Uri, TfsTeamProjectCollection> teamCollectionCache = new Dictionary<Uri, TfsTeamProjectCollection>();
-        private readonly IDictionary<Tuple<Uri, string>, string> emailCache = new Dictionary<Tuple<Uri, string>, string>();
+
+        private readonly IDictionary<Tuple<Uri, string>, string> emailCache =
+            new Dictionary<Tuple<Uri, string>, string>();
+
+        private readonly IDictionary<Uri, TfsTeamProjectCollection> teamCollectionCache =
+            new Dictionary<Uri, TfsTeamProjectCollection>();
 
         public TfsCache(VssCredentials credentials)
         {
             this.credentials = credentials;
         }
 
+        public void Dispose()
+        {
+            foreach (var teamCollection in teamCollectionCache.Values)
+            {
+                teamCollection.Dispose();
+            }
+        }
+
         private TfsTeamProjectCollection GetTeamProjectCollection(Uri serverUri)
         {
-            TfsTeamProjectCollection result;
-            if (!teamCollectionCache.TryGetValue(serverUri, out result))
+            if (!teamCollectionCache.TryGetValue(serverUri, out var result))
             {
+                // create new connection, validate and store
                 result = new TfsTeamProjectCollection(serverUri, credentials);
                 result.EnsureAuthenticated();
                 teamCollectionCache[serverUri] = result;
@@ -49,7 +62,7 @@ namespace SonarSource.TfsAnnotate
             return GetTeamProjectCollection(serverUri).GetService<VersionControlServer>();
         }
 
-        private IIdentityManagementService GetIdentityMangementService(Uri serverUri)
+        private IIdentityManagementService GetIdentityManagementService(Uri serverUri)
         {
             return GetTeamProjectCollection(serverUri).GetService<IIdentityManagementService>();
         }
@@ -63,11 +76,14 @@ namespace SonarSource.TfsAnnotate
             }
 
             var key = Tuple.Create(serverUri, accountName);
-            string result;
-            if (!emailCache.TryGetValue(key, out result))
+            if (!emailCache.TryGetValue(key, out string result))
             {
-                var identity = GetIdentityMangementService(serverUri)
-                    .ReadIdentity(IdentitySearchFactor.AccountName, accountName, MembershipQuery.None, ReadIdentityOptions.ExtendedProperties | ReadIdentityOptions.IncludeReadFromSource);
+                var service = GetIdentityManagementService(serverUri);
+                var identity = service.ReadIdentity(
+                    IdentitySearchFactor.AccountName,
+                    accountName,
+                    MembershipQuery.None,
+                    ReadIdentityOptions.ExtendedProperties | ReadIdentityOptions.IncludeReadFromSource);
 
                 if (identity == null)
                 {
@@ -79,7 +95,7 @@ namespace SonarSource.TfsAnnotate
                     result = identity.GetAttribute("ConfirmedNotificationAddress", string.Empty);
                     if (!IsEmail(result))
                     {
-                        // Mail is supposedly fethed from AD
+                        // Mail is supposedly fetched from AD
                         result = identity.GetAttribute("Mail", accountName);
                         if (!IsEmail(result))
                         {
@@ -98,14 +114,6 @@ namespace SonarSource.TfsAnnotate
         private static bool IsEmail(string email)
         {
             return email.Contains('@');
-        }
-
-        public void Dispose()
-        {
-            foreach (var teamCollection in teamCollectionCache.Values)
-            {
-                teamCollection.Dispose();
-            }
         }
     }
 }
