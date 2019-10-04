@@ -31,6 +31,7 @@ import org.sonar.api.utils.TempFolder;
 
 public class TfsBlameCommand extends BlameCommand {
 
+  private static final String LOG_FORMAT = "{}: {}";
   private static final String LOG_PREFIX = "SCM-TFVC";
   private static final Logger LOG = LoggerFactory.getLogger(TfsBlameCommand.class);
   private static final Pattern LINE_PATTERN = Pattern.compile("([^\t]++)\t([^\t]++)\t([^\t]++)");
@@ -170,17 +171,17 @@ public class TfsBlameCommand extends BlameCommand {
 
   private static void logInfo(String message, Object... arguments) {
     String fullMessage = String.format(message, arguments);
-	  LOG.info("{}: {}", LOG_PREFIX, fullMessage);
+	  LOG.info(LOG_FORMAT, LOG_PREFIX, fullMessage);
   }
 
   private static void logDebug(String message, Object... arguments) {
     String fullMessage = String.format(message, arguments);
-    LOG.debug("{}: {}", LOG_PREFIX, fullMessage);
+    LOG.debug(LOG_FORMAT, LOG_PREFIX, fullMessage);
   }
 
   private static void logError(String message, Object... arguments) {
     String fullMessage = String.format(message, arguments);
-    LOG.error("{}: {}", LOG_PREFIX, fullMessage);
+    LOG.error(LOG_FORMAT, LOG_PREFIX, fullMessage);
   }
 
   private static void logOutput(String output) {
