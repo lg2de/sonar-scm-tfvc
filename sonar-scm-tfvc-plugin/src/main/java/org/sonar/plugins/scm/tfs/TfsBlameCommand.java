@@ -7,7 +7,6 @@
 package org.sonar.plugins.scm.tfs;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
@@ -18,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -31,7 +31,8 @@ import org.sonar.api.utils.TempFolder;
 
 public class TfsBlameCommand extends BlameCommand {
 
-  private static final String LogPrefix = "SCM-TFVC: ";
+  private static final String LOG_FORMAT = "{}: {}";
+  private static final String LOG_PREFIX = "SCM-TFVC";
   private static final Logger LOG = LoggerFactory.getLogger(TfsBlameCommand.class);
   private static final Pattern LINE_PATTERN = Pattern.compile("([^\t]++)\t([^\t]++)\t([^\t]++)");
 
@@ -52,23 +53,26 @@ public class TfsBlameCommand extends BlameCommand {
   public void blame(BlameInput input, BlameOutput output) {
     Process process = null;
     try {
-      LOG.debug(LogPrefix + "Executing the TFVC annotate command: " + executable.getAbsolutePath());
+      logDebug("Executing the TFVC annotate command: %s", executable.getAbsolutePath());
       ProcessBuilder processBuilder = new ProcessBuilder(executable.getAbsolutePath());
       process = processBuilder.start();
-      OutputStreamWriter stdin = new OutputStreamWriter(process.getOutputStream(), Charsets.UTF_8);
-      BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream(), Charsets.UTF_8));
-      BufferedReader stderr = new BufferedReader(new InputStreamReader(process.getErrorStream(), Charsets.UTF_8));
+      OutputStreamWriter stdin = new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8);
+      BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
+      BufferedReader stderr = new BufferedReader(new InputStreamReader(process.getErrorStream(), StandardCharsets.UTF_8));
 
       String blameOutput = stdout.readLine();
       for (int i=0; i<10; i++) {
-        LOG.debug(LogPrefix + "received output: <" + blameOutput + ">");
-        if (blameOutput != null && !blameOutput.isEmpty()) break;
+        logOutput(blameOutput);
+        if (blameOutput != null && !blameOutput.isEmpty()) {
+          break;
+        }
+
         Thread.sleep(100);
       }
 
       if (blameOutput == null || blameOutput.isEmpty()) {
-    	LOG.error(LogPrefix + "missing initial output from annotator.");
-    	return;
+        logError("missing initial output from annotator.");
+        return;
       }
 
       stdin.write(conf.username() + "\r\n");
@@ -77,21 +81,21 @@ public class TfsBlameCommand extends BlameCommand {
       stdin.flush();
 
       blameOutput = stdout.readLine();
-      LOG.debug(LogPrefix + "received output: <" + blameOutput + ">");
+      logOutput(blameOutput);
       stdin.write(conf.collectionUri() + "\r\n");
       stdin.flush();
 
       blameOutput = stdout.readLine();
       if (blameOutput.equals("AnnotationFailedOnProject")) {
-        LOG.error(LogPrefix + stderr.readLine());
+        logError(stderr.readLine());
         return;
       }
 
-      LOG.debug(LogPrefix + "received output: <" + blameOutput + ">");
+      logOutput(blameOutput);
       for (InputFile inputFile : input.filesToBlame()) {
     	// extract full path from URI, skipping leading slash
     	String fileName = inputFile.uri().getPath().substring(1);
-        LOG.info(LogPrefix + "annotating " + fileName);
+        logInfo("annotating %s", fileName);
 
         stdin.write(fileName + "\r\n");
         stdin.flush();
@@ -103,16 +107,16 @@ public class TfsBlameCommand extends BlameCommand {
 
         String linesAsString = stdout.readLine();
         if (linesAsString.equals("AnnotationFailedOnFile")) {
-          LOG.error(LogPrefix + stderr.readLine());
+          logError(stderr.readLine());
           continue;
         }
+
         if (linesAsString == null||linesAsString.equals("AnnotationFailedOnProject")) {
-          LOG.error(LogPrefix + stderr.readLine());
+          logError(stderr.readLine());
           break;
         }
+
         int lines = Integer.parseInt(linesAsString, 10);
-
-
         List<BlameLine> result = Lists.newArrayList();
         for (int i = 0; i < lines; i++) {
           String line = stdout.readLine();
@@ -147,11 +151,13 @@ public class TfsBlameCommand extends BlameCommand {
         throw new IllegalStateException("The TFVC annotate command " + executable.getAbsolutePath() + " failed with exit code " + exitCode);
       }
     } catch (IOException e) {
-      LOG.error(LogPrefix + "IOException thrown in the TFVC annotate command : " + e.getMessage());
+      logError("IOException thrown in the TFVC annotate command: %s", e.getMessage());
     } catch (InterruptedException e) {
-      LOG.error(LogPrefix + "InterruptedException thrown in the TFVC annotate command : " + e.getMessage());
+      logError("InterruptedException thrown in the TFVC annotate command: %s", e.getMessage());
+      // Restore interrupted state...
+      Thread.currentThread().interrupt();
     } catch (IllegalStateException e) {
-      LOG.error(LogPrefix + "IllegalStateException thrown in the TFVC annotate command : " + e.getMessage());
+      logError("IllegalStateException thrown in the TFVC annotate command: %s", e.getMessage());
     } finally {
       if (process != null) {
         captureErrorStream(process);
@@ -163,10 +169,29 @@ public class TfsBlameCommand extends BlameCommand {
     }
   }
 
+  private static void logInfo(String message, Object... arguments) {
+    String fullMessage = String.format(message, arguments);
+	  LOG.info(LOG_FORMAT, LOG_PREFIX, fullMessage);
+  }
+
+  private static void logDebug(String message, Object... arguments) {
+    String fullMessage = String.format(message, arguments);
+    LOG.debug(LOG_FORMAT, LOG_PREFIX, fullMessage);
+  }
+
+  private static void logError(String message, Object... arguments) {
+    String fullMessage = String.format(message, arguments);
+    LOG.error(LOG_FORMAT, LOG_PREFIX, fullMessage);
+  }
+
+  private static void logOutput(String output) {
+    logDebug("received output: <%s>", output);
+  }
+
   private static void captureErrorStream(Process process) {
     try {
       InputStream errorStream = process.getErrorStream();
-      BufferedReader errStream = new BufferedReader(new InputStreamReader(errorStream, Charsets.UTF_8));
+      BufferedReader errStream = new BufferedReader(new InputStreamReader(errorStream, StandardCharsets.UTF_8));
       int readBytesCount = errorStream.available();
       char[] errorChars = new char[readBytesCount];
 
@@ -174,11 +199,11 @@ public class TfsBlameCommand extends BlameCommand {
         errStream.read(errorChars);
         String errorString = new String(errorChars);
         if (!errorString.isEmpty()) {
-          LOG.error(LogPrefix + errorString);
+          logError(errorString);
         }
       }
     } catch (IOException e) {
-      LOG.error(LogPrefix + "Exception thrown while getting error Stream data - " + e);
+      logError("Exception thrown while getting error Stream data: %s", e);
     }
   }
 

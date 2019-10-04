@@ -123,8 +123,8 @@ public class TfsBlameCommandTest {
 
     command.blame(input, output);
     assertThat(appender.getErrorEvents()).containsExactly(
-      "SCM-TFVC: IllegalStateException thrown in the TFVC annotate command : Invalid output from the TFVC annotate command: \"hello world!\" on file: " + inputFile.absolutePath() + " at line 1");
-    verify(output, Mockito.never()).blameResult(Mockito.any(InputFile.class), Mockito.anyList());
+      "SCM-TFVC: IllegalStateException thrown in the TFVC annotate command: Invalid output from the TFVC annotate command: \"hello world!\" on file: " + inputFile.absolutePath() + " at line 1");
+    verify(output, Mockito.never()).blameResult(Mockito.any(InputFile.class), Mockito.anyListOf(BlameLine.class));
   }
 
   @Test
@@ -173,7 +173,7 @@ public class TfsBlameCommandTest {
 
     command.blame(input, output);
     assertThat(appender.getErrorEvents()).containsExactly("SCM-TFVC: Exception on Annotating Project");
-    verify(output, Mockito.never()).blameResult(Mockito.any(InputFile.class), Mockito.anyList());
+    verify(output, Mockito.never()).blameResult(Mockito.any(InputFile.class), Mockito.anyListOf(BlameLine.class));
   }
 
   @Test
@@ -181,7 +181,7 @@ public class TfsBlameCommandTest {
     File executable = new File("src/test/resources/error_stream.bat");
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);
     command.blame(mock(BlameInput.class), mock(BlameOutput.class));
-    assertThat(appender.getErrorEvents().get(0)).startsWith("SCM-TFVC: IOException thrown in the TFVC annotate command :");
+    assertThat(appender.getErrorEvents().get(0)).startsWith("SCM-TFVC: IOException thrown in the TFVC annotate command:");
     assertThat(appender.getErrorEvents().get(1)).isEqualTo("SCM-TFVC: error stream string 1 \r\nerror stream string 2 \r\n");
   }
 

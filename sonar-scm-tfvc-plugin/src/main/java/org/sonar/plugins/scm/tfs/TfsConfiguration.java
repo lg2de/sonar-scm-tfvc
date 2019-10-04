@@ -23,6 +23,8 @@ public class TfsConfiguration {
 
   private static final String CATEGORY = "TFVC";
   private static final String USERNAME_PROPERTY_KEY = "sonar.tfvc.username";
+
+  @SuppressWarnings("squid:S2068") // false-positive identified hard-coded password
   private static final String PASSWORD_PROPERTY_KEY = "sonar.tfvc.password.secured";
   private static final String COLLECTIONURI_PROPERTY_KEY = "sonar.tfvc.collectionuri";
   private static final String PAT_PROPERTY_KEY = "sonar.tfvc.pat.secured";

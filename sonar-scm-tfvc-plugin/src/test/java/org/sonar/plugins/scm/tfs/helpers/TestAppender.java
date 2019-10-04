@@ -12,16 +12,14 @@ import ch.qos.logback.core.ConsoleAppender;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TestAppender extends ConsoleAppender {
+public class TestAppender extends ConsoleAppender<ILoggingEvent> {
 
   private List<String> errorEvents = new ArrayList<>();
 
   @Override
-  public void doAppend(Object eventObject) {
-    ILoggingEvent event = (ILoggingEvent) eventObject;
-
+  public void doAppend(ILoggingEvent event) {
     if (event.getLevel() == Level.ERROR) {
-      errorEvents.add(event.getMessage());
+      errorEvents.add(event.getFormattedMessage());
     }
   }
 
