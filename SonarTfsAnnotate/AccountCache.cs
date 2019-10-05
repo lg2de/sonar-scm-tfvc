@@ -8,66 +8,22 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.TeamFoundation.Client;
-using Microsoft.TeamFoundation.Framework.Client;
 using Microsoft.TeamFoundation.Framework.Common;
-using Microsoft.TeamFoundation.VersionControl.Client;
-using Microsoft.VisualStudio.Services.Common;
 
 namespace SonarSource.TfsAnnotate
 {
-    internal class TfsCache : IDisposable
+    internal class AccountCache
     {
-        private readonly VssCredentials credentials;
-
+        private readonly IFoundationServiceProvider foundationServiceProvider;
         private readonly IDictionary<Tuple<Uri, string>, string> emailCache =
             new Dictionary<Tuple<Uri, string>, string>();
 
-        private readonly IDictionary<Uri, TfsTeamProjectCollection> teamCollectionCache =
-            new Dictionary<Uri, TfsTeamProjectCollection>();
-
-        public TfsCache(VssCredentials credentials)
+        public AccountCache(IFoundationServiceProvider foundationServiceProvider)
         {
-            this.credentials = credentials;
+            this.foundationServiceProvider = foundationServiceProvider;
         }
 
-        public void Dispose()
-        {
-            foreach (var teamCollection in this.teamCollectionCache.Values)
-            {
-                teamCollection.Dispose();
-            }
-        }
-
-        private TfsTeamProjectCollection GetTeamProjectCollection(Uri serverUri)
-        {
-            if (!this.teamCollectionCache.TryGetValue(serverUri, out var result))
-            {
-                // create new connection, validate and store
-                result = new TfsTeamProjectCollection(serverUri, this.credentials);
-                result.EnsureAuthenticated();
-                this.teamCollectionCache[serverUri] = result;
-            }
-
-            return result;
-        }
-
-        public void EnsureAuthenticated(Uri serverUri)
-        {
-            this.GetTeamProjectCollection(serverUri).EnsureAuthenticated();
-        }
-
-        public VersionControlServer GetVersionControlServer(Uri serverUri)
-        {
-            return this.GetTeamProjectCollection(serverUri).GetService<VersionControlServer>();
-        }
-
-        private IIdentityManagementService GetIdentityManagementService(Uri serverUri)
-        {
-            return this.GetTeamProjectCollection(serverUri).GetService<IIdentityManagementService>();
-        }
-
-        public string GetEmailOrAccountName(Uri serverUri, string accountName)
+        public string BuildUserName(Uri serverUri, string accountName)
         {
             if (IsEmail(accountName))
             {
@@ -78,7 +34,7 @@ namespace SonarSource.TfsAnnotate
             var key = Tuple.Create(serverUri, accountName);
             if (!this.emailCache.TryGetValue(key, out string result))
             {
-                var service = this.GetIdentityManagementService(serverUri);
+                var service = this.foundationServiceProvider.GetIdentityService(serverUri);
                 var identity = service.ReadIdentity(
                     IdentitySearchFactor.AccountName,
                     accountName,
