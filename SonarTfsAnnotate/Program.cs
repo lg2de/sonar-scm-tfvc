@@ -66,11 +66,12 @@ namespace SonarSource.TfsAnnotate
                     }
                 }
 
-                using (var cache = new TfsCache(credentials))
+                using (var foundationServiceProvider = new FoundationServiceProvider(credentials))
                 {
+                    var cache = new AccountCache(foundationServiceProvider);
                     if (serverUri != null)
                     {
-                        if (!UpdateCache(cache, serverUri))
+                        if (!UpdateWorkspaceCache(foundationServiceProvider))
                         {
                             return 1;
                         }
@@ -105,13 +106,13 @@ namespace SonarSource.TfsAnnotate
                             if (serverUri == null || workspaceInfo.ServerUri.AbsoluteUri != serverUri.AbsoluteUri)
                             {
                                 serverUri = workspaceInfo.ServerUri;
-                                if (!UpdateCache(cache, serverUri))
+                                if (!UpdateWorkspaceCache(foundationServiceProvider))
                                 {
                                     return 1;
                                 }
                             }
 
-                            var versionControlServer = cache.GetVersionControlServer(serverUri);
+                            var versionControlServer = foundationServiceProvider.GetVersionControlServer(serverUri);
 
                             var annotatedFile = new FileAnnotator(versionControlServer).Annotate(path, version);
                             if (annotatedFile == null)
@@ -149,7 +150,7 @@ namespace SonarSource.TfsAnnotate
                                 var changeSet = annotatedFile.Changeset(i);
                                 Console.Write(changeSet.ChangesetId);
                                 Console.Write('\t');
-                                Console.Write(cache.GetEmailOrAccountName(serverUri, changeSet.Owner));
+                                Console.Write(cache.BuildUserName(serverUri, changeSet.Owner));
                                 Console.Write('\t');
                                 Console.Write(ToUnixTimestampInMs(changeSet.CreationDate));
                                 Console.Write('\t');
@@ -174,19 +175,9 @@ namespace SonarSource.TfsAnnotate
             }
         }
 
-        private static bool UpdateCache(TfsCache cache, Uri serverUri)
+        private static bool UpdateWorkspaceCache(IFoundationServiceProvider foundationServiceProvider)
         {
-            try
-            {
-                cache.EnsureAuthenticated(serverUri);
-            }
-            catch (Exception e)
-            {
-                FailOnProject("raised the following authentication exception: " + e.Message);
-                return false;
-            }
-
-            var versionControlServer = cache.GetVersionControlServer(serverUri);
+            var versionControlServer = foundationServiceProvider.GetVersionControlServer(serverUri);
             Workstation.Current.EnsureUpdateWorkspaceInfoCache(versionControlServer,
                 versionControlServer.AuthorizedUser);
             return true;
