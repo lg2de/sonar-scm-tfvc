@@ -1,4 +1,4 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/pbv57p4drgrcaydn?svg=true)](https://ci.appveyor.com/project/lg2de/sonar-scm-tfvc)
+[![Build status](https://ci.appveyor.com/api/projects/status/pbv57p4drgrcaydn/branch/master?svg=true)](https://ci.appveyor.com/project/lg2de/sonar-scm-tfvc/branch/master)
 [![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=lg2de_sonar-scm-tfvc&metric=alert_status)](https://sonarcloud.io/dashboard?id=lg2de_sonar-scm-tfvc)
 
 ## SonarQube SCM TFVC plugin
