@@ -45,7 +45,9 @@ public class TfsBlameCommand extends BlameCommand {
 
   @VisibleForTesting
   public TfsBlameCommand(TfsConfiguration conf, File executable) {
+    logDebug("started blaming with executable %s", executable.getAbsolutePath());
     if (conf.collectionUri().isEmpty()) {
+      logError("Missing configuration for CollectionUri");
       throw new IllegalArgumentException("Missing configuration for CollectionUri.");
     }
 
