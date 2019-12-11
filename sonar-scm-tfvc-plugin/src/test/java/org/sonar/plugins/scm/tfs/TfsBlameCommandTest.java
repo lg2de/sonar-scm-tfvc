@@ -41,10 +41,11 @@ public class TfsBlameCommandTest {
   private TestAppender appender;
 
   @Before
-  public void Setup() {
+  public void setup() {
     appender = new TestAppender();
-
     getRootLogger().addAppender(appender);
+
+    when(conf.collectionUri()).thenReturn("https://localtfs/tfs");
   }
 
   @After
@@ -52,135 +53,131 @@ public class TfsBlameCommandTest {
     getRootLogger().detachAppender(appender);
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void init_missingCollectionUri_exceptionThrown() {
+    File executable = new File("src/test/resources/fake.bat");
+    when(conf.collectionUri()).thenReturn("");
+
+    new TfsBlameCommand(conf, executable);
+  }
+
   @Test
-  public void ok() throws IOException {
+  public void blame_sampleData_processedWithoutError() throws IOException {
     File executable = new File("src/test/resources/fake.bat");
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);
-
     File file = new File("src/test/resources/ok.txt");
     DefaultInputFile inputFile = new TestInputFileBuilder("ok", "ok.txt")
-            .setModuleBaseDir(file.toPath().getParent())
-            .build();
-
+        .setModuleBaseDir(file.toPath().getParent())
+        .build();
     BlameInput input = mock(BlameInput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
-
     BlameOutput output = mock(BlameOutput.class);
 
     command.blame(input, output);
 
     verify(output).blameResult(
-      inputFile,
-      Arrays.asList(
-        new BlameLine().date(new Date(1430736199000L)).revision("26274").author("SND\\DinSoft_cp"),
-        new BlameLine().date(new Date(1430736200000L)).revision("26275").author("SND\\DinSoft_cp")));
-
+        inputFile,
+        Arrays.asList(
+            new BlameLine().date(new Date(1430736199000L)).revision("26274").author("SND\\DinSoft_cp"),
+            new BlameLine().date(new Date(1430736200000L)).revision("26275").author("SND\\DinSoft_cp")));
     assertThat(appender.getErrorEvents()).isEmpty();
   }
 
   @Test
-  public void should_annotate_last_empty_line() {
+  public void blame_lastLineEmpty_annotated() {
     File executable = new File("src/test/resources/fake.bat");
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);
-
     File file = new File("src/test/resources/ok.txt");
     DefaultInputFile inputFile = new TestInputFileBuilder("ok", "ok.txt")
-            .setModuleBaseDir(file.toPath().getParent())
-            .setLines(3)
-            .build();
-
+        .setModuleBaseDir(file.toPath().getParent())
+        .setLines(3)
+        .build();
     BlameInput input = mock(BlameInput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
-
     BlameOutput output = mock(BlameOutput.class);
 
     command.blame(input, output);
 
     verify(output).blameResult(
-      inputFile,
-      Arrays.asList(
-        new BlameLine().date(new Date(1430736199000L)).revision("26274").author("SND\\DinSoft_cp"),
-        new BlameLine().date(new Date(1430736200000L)).revision("26275").author("SND\\DinSoft_cp"),
-        new BlameLine().date(new Date(1430736200000L)).revision("26275").author("SND\\DinSoft_cp")));
+        inputFile,
+        Arrays.asList(
+            new BlameLine().date(new Date(1430736199000L)).revision("26274").author("SND\\DinSoft_cp"),
+            new BlameLine().date(new Date(1430736200000L)).revision("26275").author("SND\\DinSoft_cp"),
+            new BlameLine().date(new Date(1430736200000L)).revision("26275").author("SND\\DinSoft_cp")));
 
     assertThat(appender.getErrorEvents()).isEmpty();
   }
 
   @Test
-  public void should_fail_on_invalid_output() {
+  public void blame_invalidOutput_errorLogged() {
     File executable = new File("src/test/resources/fake.bat");
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);
-
     File file = new File("src/test/resources/invalid_output.txt");
     DefaultInputFile inputFile = new TestInputFileBuilder("invalid_output", "invalid_output.txt")
-      .setModuleBaseDir(file.toPath().getParent())
-      .build();
-
+        .setModuleBaseDir(file.toPath().getParent())
+        .build();
     BlameInput input = mock(BlameInput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
-
     BlameOutput output = mock(BlameOutput.class);
 
     command.blame(input, output);
+
     assertThat(appender.getErrorEvents()).containsExactly(
-      "SCM-TFVC: IllegalStateException thrown in the TFVC annotate command: Invalid output from the TFVC annotate command: \"hello world!\" on file: " + inputFile.absolutePath() + " at line 1");
+        "SCM-TFVC: IllegalStateException thrown in the TFVC annotate command: Invalid output from the TFVC annotate command: \"hello world!\" on file: " + inputFile.absolutePath() + " at line 1");
     verify(output, Mockito.never()).blameResult(Mockito.any(InputFile.class), Mockito.anyListOf(BlameLine.class));
   }
 
   @Test
-  public void should_fail_on_error_on_file() {
+  public void blame_exceptionWhileFileProcessing_errorLogged() {
     File executable = new File("src/test/resources/file_level_error.bat");
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);
-
     File file = new File("src/test/resources/ko_non_existing.txt");
     DefaultInputFile inputFile = new TestInputFileBuilder("ko_non_existing", "ko_non_existing.txt")
-            .setModuleBaseDir(file.toPath().getParent())
-            .build();
-
+        .setModuleBaseDir(file.toPath().getParent())
+        .build();
     File file2 = new File("src/test/resources/ok.txt");
     DefaultInputFile inputFile2 = new TestInputFileBuilder("ok", "ok.txt")
-            .setModuleBaseDir(file2.toPath().getParent())
-            .build();
-
-
+        .setModuleBaseDir(file2.toPath().getParent())
+        .build();
     BlameInput input = mock(BlameInput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile,inputFile2));
     BlameOutput output = mock(BlameOutput.class);
 
     command.blame(input, output);
+
     assertThat(appender.getErrorEvents()).containsExactly("SCM-TFVC: Exception on Annotating File");
     verify(output).blameResult(
-            inputFile2,
-            Arrays.asList(
-                    new BlameLine().date(new Date(1430736199000L)).revision("26274").author("SND\\DinSoft_cp"),
-                    new BlameLine().date(new Date(1430736200000L)).revision("26275").author("SND\\DinSoft_cp")));
+        inputFile2,
+        Arrays.asList(
+            new BlameLine().date(new Date(1430736199000L)).revision("26274").author("SND\\DinSoft_cp"),
+            new BlameLine().date(new Date(1430736200000L)).revision("26275").author("SND\\DinSoft_cp")));
   }
 
   @Test
-  public void should_fail_on_error_on_project() {
+  public void blame_exceptionWhileProjectProcessing_errorLogged() {
     File executable = new File("src/test/resources/project_level_error.bat");
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);
-
     File file = new File("src/test/resources/ko_non_existing.txt");
     DefaultInputFile inputFile = new TestInputFileBuilder("ko_non_existing", "ko_non_existing.txt")
-            .setModuleBaseDir(file.toPath().getParent())
-            .build();
-
-
+        .setModuleBaseDir(file.toPath().getParent())
+        .build();
     BlameInput input = mock(BlameInput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
     BlameOutput output = mock(BlameOutput.class);
 
     command.blame(input, output);
+
     assertThat(appender.getErrorEvents()).containsExactly("SCM-TFVC: Exception on Annotating Project");
     verify(output, Mockito.never()).blameResult(Mockito.any(InputFile.class), Mockito.anyListOf(BlameLine.class));
   }
 
   @Test
-  public void read_error_stream() {
+  public void blame_exceptionInStream_errorLogged() {
     File executable = new File("src/test/resources/error_stream.bat");
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);
+
     command.blame(mock(BlameInput.class), mock(BlameOutput.class));
+
     assertThat(appender.getErrorEvents().get(0)).startsWith("SCM-TFVC: IOException thrown in the TFVC annotate command:");
     assertThat(appender.getErrorEvents().get(1)).isEqualTo("SCM-TFVC: error stream string 1 \r\nerror stream string 2 \r\n");
   }
