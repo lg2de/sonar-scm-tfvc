@@ -8,12 +8,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.TeamFoundation.Framework.Common;
 
 namespace SonarSource.TfsAnnotate
 {
+    /// <summary>
+    ///     Implements a cache for account identifiers
+    /// </summary>
     internal class AccountCache
     {
+        private static readonly Regex LiveIdExpression = new Regex("windows live id/");
+
         private readonly IFoundationServiceProvider foundationServiceProvider;
         private readonly IDictionary<Tuple<Uri, string>, string> emailCache =
             new Dictionary<Tuple<Uri, string>, string>();
@@ -25,14 +31,15 @@ namespace SonarSource.TfsAnnotate
 
         public string BuildUserName(Uri serverUri, string accountName)
         {
-            if (IsEmail(accountName))
+            var trimmedUserName = LiveIdExpression.Replace(accountName, string.Empty);
+            if (IsEmail(trimmedUserName))
             {
                 // Visual Studio Online accounts are already email addresses
-                return accountName;
+                return trimmedUserName;
             }
 
-            var key = Tuple.Create(serverUri, accountName);
-            if (!this.emailCache.TryGetValue(key, out string result))
+            var cacheKey = Tuple.Create(serverUri, accountName);
+            if (!this.emailCache.TryGetValue(cacheKey, out string result))
             {
                 var service = this.foundationServiceProvider.GetIdentityService(serverUri);
                 var identity = service.ReadIdentity(
@@ -61,15 +68,15 @@ namespace SonarSource.TfsAnnotate
                     }
                 }
 
-                this.emailCache[key] = result;
+                this.emailCache[cacheKey] = result;
             }
 
             return result;
         }
 
-        private static bool IsEmail(string email)
+        private static bool IsEmail(string input)
         {
-            return email.Contains('@');
+            return input.Contains('@');
         }
     }
 }

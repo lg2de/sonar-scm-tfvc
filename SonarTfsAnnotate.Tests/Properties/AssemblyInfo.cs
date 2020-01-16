@@ -1,16 +1,22 @@
-﻿using System.Reflection;
-using System.Runtime.CompilerServices;
+﻿/*
+ * SonarQube :: SCM :: TFVC :: Plugin
+ * Copyright (c) Lukas Grützmacher.  All rights reserved.
+ *
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ */
+
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("SonarTfsAnnontateTests")]
+[assembly: AssemblyTitle("SonarTfsAnnontate.Tests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("SonarTfsAnnontateTests")]
-[assembly: AssemblyCopyright("Copyright ©  2019")]
+[assembly: AssemblyProduct("SonarTfsAnnontate.Tests")]
+[assembly: AssemblyCopyright("Copyright © Lukas Grützmacher 2019-2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

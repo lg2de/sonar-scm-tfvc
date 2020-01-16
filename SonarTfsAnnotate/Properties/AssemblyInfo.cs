@@ -17,7 +17,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("SonarSource")]
 [assembly: AssemblyProduct("SonarTfsAnnotate")]
-[assembly: AssemblyCopyright("Copyright © SonarSource 2014")]
+[assembly: AssemblyCopyright("Copyright © SonarSource 2014-2016, Lukas Grützmacher 2019-2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -31,5 +31,5 @@ using System.Runtime.InteropServices;
 
 [assembly: AssemblyVersion("2.3.0.0")]
 
-[assembly: InternalsVisibleTo("SonarTfsAnnotateTests")]
+[assembly: InternalsVisibleTo("SonarTfsAnnotate.Tests")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
