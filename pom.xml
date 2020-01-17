@@ -8,10 +8,13 @@
   </parent>
   <groupId>org.sonarsource.tfvc</groupId>
   <artifactId>sonar-scm-tfvc</artifactId>
-  <version>2.3-SNAPSHOT</version>
+  <version>2.3.0</version>
   <packaging>pom</packaging>
   <name>SonarQube :: SCM :: TFVC</name>
   <inceptionYear>2014</inceptionYear>
+  <properties>
+    <buildVersion>LOCAL</buildVersion>
+  </properties>
   <licenses>
     <license>
       <name>MIT</name>
