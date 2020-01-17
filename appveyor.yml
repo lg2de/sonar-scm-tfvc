@@ -1,4 +1,4 @@
-version: 1.0.{build}
+version: {build}
 image: Visual Studio 2019
 
 cache:
@@ -17,7 +17,7 @@ before_build:
   - nuget restore
 
 build_script:
-  - mvn clean package --batch-mode
+  - mvn clean package --batch-mode -DbuildVersion={version}
   - ps: if ($env:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH) { $env:APPVEYOR_REPO_BRANCH = $env:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH; }
   - mvn sonar:sonar -Dsonar.projectKey=lg2de_sonar-scm-tfvc -Dsonar.organization=lg2de -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=bc95cf028203c4093dc26fcf45cc0563315ee582 -Dsonar.branch.name=%APPVEYOR_REPO_BRANCH%
 
