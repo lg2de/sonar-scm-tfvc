@@ -193,11 +193,13 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AccountCache.cs" />
     <Compile Include="FileAnnotator.cs" />
+    <Compile Include="FoundationServiceProvider.cs" />
     <Compile Include="HistoryProvider.cs" />
+    <Compile Include="IFoundationServiceProvider.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TfsCache.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

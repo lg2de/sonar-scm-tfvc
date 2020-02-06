@@ -1,23 +1,22 @@
-/*
+﻿/*
  * SonarQube :: SCM :: TFVC :: Plugin
- * Copyright (c) SonarSource SA and Microsoft Corporation.  All rights reserved.
+ * Copyright (c) Lukas Grützmacher.  All rights reserved.
  *
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("SonarTfsAnnotate")]
+[assembly: AssemblyTitle("SonarTfsAnnontate.Tests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("SonarSource")]
-[assembly: AssemblyProduct("SonarTfsAnnotate")]
-[assembly: AssemblyCopyright("Copyright � SonarSource 2014-2016, Lukas Gr�tzmacher 2019-2020")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("SonarTfsAnnontate.Tests")]
+[assembly: AssemblyCopyright("Copyright © Lukas Grützmacher 2019-2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -27,9 +26,17 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("ef935e23-3dbf-401d-a5c3-62b3ec660a46")]
+[assembly: Guid("f28b9147-3181-4808-bede-8b87ee344af9")]
 
-[assembly: AssemblyVersion("2.3.0.0")]
-
-[assembly: InternalsVisibleTo("SonarTfsAnnotate.Tests")]
-[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
+// Version information for an assembly consists of the following four values:
+//
+//      Major Version
+//      Minor Version
+//      Build Number
+//      Revision
+//
+// You can specify all the values or you can default the Build and Revision Numbers
+// by using the '*' as shown below:
+// [assembly: AssemblyVersion("1.0.*")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]

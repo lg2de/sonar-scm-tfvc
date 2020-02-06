@@ -4,6 +4,7 @@
  *
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,7 +14,7 @@ using Microsoft.TeamFoundation.VersionControl.Common;
 
 namespace SonarSource.TfsAnnotate
 {
-    class FileAnnotator
+    internal class FileAnnotator
     {
         private readonly VersionControlServer server;
 
@@ -26,13 +27,15 @@ namespace SonarSource.TfsAnnotate
         {
             var options = new DiffOptions
             {
-                Flags = DiffOptionFlags.EnablePreambleHandling | DiffOptionFlags.IgnoreLeadingAndTrailingWhiteSpace | DiffOptionFlags.IgnoreEndOfLineDifference
+                Flags = DiffOptionFlags.EnablePreambleHandling | DiffOptionFlags.IgnoreLeadingAndTrailingWhiteSpace |
+                        DiffOptionFlags.IgnoreEndOfLineDifference
             };
 
-            PendingChange[] pendingChanges = server.GetWorkspace(path).GetPendingChanges(path);
+            var pendingChanges = this.server.GetWorkspace(path).GetPendingChanges(path);
             if (pendingChanges.Length >= 2)
             {
-                throw new InvalidOperationException("Expected at most 1 pending change, but got " + pendingChanges.Length);
+                throw new InvalidOperationException("Expected at most 1 pending change, but got " +
+                                                    pendingChanges.Length);
             }
 
             Changeset currentChangeset = null;
@@ -48,6 +51,7 @@ namespace SonarSource.TfsAnnotate
                 {
                     return annotatedFile;
                 }
+
                 currentPath = path;
                 currentEncoding = pendingChanges[0].Encoding;
             }
@@ -58,13 +62,13 @@ namespace SonarSource.TfsAnnotate
                 currentEncoding = 0;
             }
 
-            using (var historyProvider = new HistoryProvider(server, path, version))
+            using (var historyProvider = new HistoryProvider(this.server, path, version))
             {
                 bool done = false;
 
                 while (!done && historyProvider.Next())
                 {
-                    Changeset previousChangeset = historyProvider.Changeset();
+                    var previousChangeset = historyProvider.Changeset();
 
                     string previousPath = historyProvider.Filename();
                     int previousEncoding = previousChangeset.Changes[0].Item.Encoding;
@@ -84,7 +88,8 @@ namespace SonarSource.TfsAnnotate
                     }
                     else
                     {
-                        var diff = Diff(Difference.DiffFiles(currentPath, currentEncoding, previousPath, previousEncoding, options));
+                        var diff = Diff(Difference.DiffFiles(currentPath, currentEncoding, previousPath,
+                            previousEncoding, options));
                         done = annotatedFile.ApplyDiff(currentChangeset, diff);
                     }
 
@@ -124,100 +129,55 @@ namespace SonarSource.TfsAnnotate
         {
             private const int UnknownIdentifier = -1;
             private const int LocalIdentifier = 0;
+            private readonly IDictionary<int, Changeset> changesets = new Dictionary<int, Changeset>();
+            private readonly string[] data;
 
             private readonly bool isBinary;
-            private readonly string[] data;
             private readonly int lines;
-            private readonly int[] revisions;
             private readonly int[] mappings;
-            private readonly IDictionary<int, Changeset> changesets = new Dictionary<int, Changeset>();
+            private readonly int[] revisions;
 
             public AnnotatedFile(string path, int encoding)
             {
                 if (encoding == -1)
                 {
-                    isBinary = true;
+                    this.isBinary = true;
                 }
                 else
                 {
-                    data = File.ReadAllLines(path, Encoding.GetEncoding(encoding));
-                    lines = data.Length;
-                    revisions = new int[lines];
-                    mappings = new int[lines];
-                    for (int i = 0; i < lines; i++)
+                    this.data = File.ReadAllLines(path, Encoding.GetEncoding(encoding));
+                    this.lines = this.data.Length;
+                    this.revisions = new int[this.lines];
+                    this.mappings = new int[this.lines];
+                    for (int i = 0; i < this.lines; i++)
                     {
-                        revisions[i] = UnknownIdentifier;
-                        mappings[i] = i;
+                        this.revisions[i] = UnknownIdentifier;
+                        this.mappings[i] = i;
                     }
-                }
-            }
-
-            public void Apply(Changeset changeset)
-            {
-                for (int i = 0; i < revisions.Length; i++)
-                {
-                    if (revisions[i] == UnknownIdentifier)
-                    {
-                        Associate(i, changeset);
-                    }
-                }
-            }
-
-            public bool ApplyDiff(Changeset changeset, Dictionary<int, int> diff)
-            {
-                bool done = true;
-
-                for (int i = 0; i < revisions.Length; i++)
-                {
-                    if (revisions[i] == UnknownIdentifier)
-                    {
-                        int line = mappings[i];
-                        if (!diff.ContainsKey(line))
-                        {
-                            Associate(i, changeset);
-                        }
-                        else
-                        {
-                            mappings[i] = diff[line];
-                            done = false;
-                        }
-                    }
-                }
-
-                return done;
-            }
-
-            private void Associate(int line, Changeset changeset)
-            {
-                int changesetId = changeset?.ChangesetId ?? LocalIdentifier;
-                revisions[line] = changesetId;
-                if (!changesets.ContainsKey(changesetId))
-                {
-                    changesets.Add(changesetId, changeset);
                 }
             }
 
             public bool IsBinary()
             {
-                return isBinary;
+                return this.isBinary;
             }
 
             public int Lines()
             {
-                ThrowIfBinaryFile();
-                return lines;
+                this.ThrowIfBinaryFile();
+                return this.lines;
             }
 
             public string Data(int line)
             {
-                ThrowIfBinaryFile();
-                return data[line];
+                this.ThrowIfBinaryFile();
+                return this.data[line];
             }
 
             public AnnotationState State(int line)
             {
-                ThrowIfBinaryFile();
-                switch (revisions[line])
+                this.ThrowIfBinaryFile();
+                switch (this.revisions[line])
                 {
                     case UnknownIdentifier:
                         return AnnotationState.Unknown;
@@ -230,13 +190,58 @@ namespace SonarSource.TfsAnnotate
 
             public Changeset Changeset(int line)
             {
-                ThrowIfBinaryFile();
-                return changesets[revisions[line]];
+                this.ThrowIfBinaryFile();
+                return this.changesets[this.revisions[line]];
+            }
+
+            public void Apply(Changeset changeset)
+            {
+                for (int i = 0; i < this.revisions.Length; i++)
+                {
+                    if (this.revisions[i] == UnknownIdentifier)
+                    {
+                        this.Associate(i, changeset);
+                    }
+                }
+            }
+
+            public bool ApplyDiff(Changeset changeset, Dictionary<int, int> diff)
+            {
+                bool done = true;
+
+                for (int i = 0; i < this.revisions.Length; i++)
+                {
+                    if (this.revisions[i] == UnknownIdentifier)
+                    {
+                        int line = this.mappings[i];
+                        if (!diff.ContainsKey(line))
+                        {
+                            this.Associate(i, changeset);
+                        }
+                        else
+                        {
+                            this.mappings[i] = diff[line];
+                            done = false;
+                        }
+                    }
+                }
+
+                return done;
+            }
+
+            private void Associate(int line, Changeset changeset)
+            {
+                int changesetId = changeset?.ChangesetId ?? LocalIdentifier;
+                this.revisions[line] = changesetId;
+                if (!this.changesets.ContainsKey(changesetId))
+                {
+                    this.changesets.Add(changesetId, changeset);
+                }
             }
 
             private void ThrowIfBinaryFile()
             {
-                if (IsBinary())
+                if (this.IsBinary())
                 {
                     throw new InvalidOperationException("Not supported on binary files!");
                 }
