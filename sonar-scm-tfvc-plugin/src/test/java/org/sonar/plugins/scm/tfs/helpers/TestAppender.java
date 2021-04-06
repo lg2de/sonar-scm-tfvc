@@ -16,15 +16,24 @@ public class TestAppender extends ConsoleAppender<ILoggingEvent> {
 
   private List<String> errorEvents = new ArrayList<>();
 
+  private List<String> warningEvents = new ArrayList<>();
+
   @Override
   public void doAppend(ILoggingEvent event) {
     if (event.getLevel() == Level.ERROR) {
       errorEvents.add(event.getFormattedMessage());
     }
+    if (event.getLevel() == Level.WARN) {
+      warningEvents.add(event.getFormattedMessage());
+    }
   }
 
   public List<String> getErrorEvents() {
     return errorEvents;
+  }
+
+  public List<String> getWarningEvents() {
+    return warningEvents;
   }
 
 }

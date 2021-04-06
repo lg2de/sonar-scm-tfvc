@@ -53,12 +53,16 @@ public class TfsBlameCommandTest {
     getRootLogger().detachAppender(appender);
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void init_missingCollectionUri_exceptionThrown() {
+  @Test
+  public void init_missingCollectionUri_noExceptionThrown() {
     File executable = new File("src/test/resources/fake.bat");
     when(conf.collectionUri()).thenReturn("");
 
-    new TfsBlameCommand(conf, executable);
+    TfsBlameCommand command = new TfsBlameCommand(conf, executable);
+    assertThat(command).isNotNull();
+    assertThat(appender.getErrorEvents()).isEmpty();
+    assertThat(appender.getWarningEvents()).containsExactly(
+        "SCM-TFVC: Missing configuration for CollectionUri. The project may not receive blame information.");
   }
 
   @Test

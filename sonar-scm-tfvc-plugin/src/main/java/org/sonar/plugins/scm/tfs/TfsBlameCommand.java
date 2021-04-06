@@ -47,8 +47,7 @@ public class TfsBlameCommand extends BlameCommand {
   public TfsBlameCommand(TfsConfiguration conf, File executable) {
     logDebug("started blaming with executable %s", executable.getAbsolutePath());
     if (conf.collectionUri().isEmpty()) {
-      logError("Missing configuration for CollectionUri");
-      throw new IllegalArgumentException("Missing configuration for CollectionUri.");
+      logWarning("Missing configuration for CollectionUri. The project may not receive blame information.");
     }
 
     this.conf = conf;
@@ -183,6 +182,11 @@ public class TfsBlameCommand extends BlameCommand {
   private static void logDebug(String message, Object... arguments) {
     String fullMessage = String.format(message, arguments);
     LOG.debug(LOG_FORMAT, LOG_PREFIX, fullMessage);
+  }
+
+  private static void logWarning(String message, Object... arguments) {
+    String fullMessage = String.format(message, arguments);
+    LOG.warn(LOG_FORMAT, LOG_PREFIX, fullMessage);
   }
 
   private static void logError(String message, Object... arguments) {
