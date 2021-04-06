@@ -26,12 +26,14 @@
     <system>github</system>
     <url>https://github.com/lg2de/sonar-scm-tfvc/issues</url>
   </issueManagement>
+
   <properties>
     <sonar.buildVersion>6.7</sonar.buildVersion>
     <sonar.pluginName>TFVC</sonar.pluginName>
     <sonar.pluginClass>org.sonar.plugins.scm.tfs.TfsPlugin</sonar.pluginClass>
     <sonar.pluginDisplayVersion>${project.version} (build ${buildVersion})</sonar.pluginDisplayVersion>
   </properties>
+
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -87,13 +89,14 @@
       <version>1.4</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
+    <!--dependency>
       <groupId>org.jacoco</groupId>
       <artifactId>org.jacoco.core</artifactId>
       <version>0.8.4</version>
       <scope>test</scope>
-    </dependency>
+    </dependency-->
   </dependencies>
+  
   <build>
     <finalName>${project.artifactId}-${project.version}.${buildVersion}</finalName>
     <plugins>
@@ -130,7 +133,7 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.8.4</version>
+        <version>0.8.6</version>
         <executions>
           <!-- set arg line property for surefire -->
           <execution>
@@ -183,4 +186,36 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>coverage</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>prepare-agent</id>
+                <goals>
+                  <goal>prepare-agent</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>report</id>
+                <goals>
+                  <goal>report</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
 </project>
