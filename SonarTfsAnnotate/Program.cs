@@ -90,13 +90,13 @@ namespace SonarSource.TfsAnnotate
 
                             if (!File.Exists(path))
                             {
-                                FailOnFile("does not exist: " + path);
+                                FailOnFile(path, "The file does not exist.");
                                 continue;
                             }
 
                             if (!Workstation.Current.IsMapped(path))
                             {
-                                FailOnFile("is not in a mapped TFS workspace: " + path);
+                                FailOnFile(path, "The file is not in a mapped TFS workspace.");
                                 continue;
                             }
 
@@ -117,13 +117,13 @@ namespace SonarSource.TfsAnnotate
                             var annotatedFile = new FileAnnotator(versionControlServer).Annotate(path, version);
                             if (annotatedFile == null)
                             {
-                                FailOnFile("is not yet checked-in: " + path);
+                                FailOnFile(path, "The file is not yet checked-in.");
                                 continue;
                             }
 
                             if (annotatedFile.IsBinary())
                             {
-                                FailOnFile("is a binary one: " + path);
+                                FailOnFile(path, "The file is a binary.");
                                 continue;
                             }
 
@@ -133,8 +133,7 @@ namespace SonarSource.TfsAnnotate
                                 var state = annotatedFile.State(i);
                                 if (state != AnnotationState.Committed)
                                 {
-                                    FailOnFile("line " + (i + 1) + " has not yet been checked-in (" + state + "): " +
-                                               path);
+                                    FailOnFile(path, $"Line {(i + 1)} has not yet been checked-in ({state}).");
                                     failed = true;
                                 }
                             }
@@ -159,7 +158,7 @@ namespace SonarSource.TfsAnnotate
                         }
                         catch (Exception e)
                         {
-                            FailOnFile(e.Message);
+                            FailOnFile(path, e.Message);
                         }
                     }
 
@@ -170,7 +169,8 @@ namespace SonarSource.TfsAnnotate
             }
             catch (Exception e)
             {
-                FailOnProject(e.Message);
+                FailOnProject(
+                    $"Unable to annotate the project. Exception: '{e.Message}'.{Environment.NewLine}{e.StackTrace}");
                 return 1;
             }
         }
@@ -191,7 +191,8 @@ namespace SonarSource.TfsAnnotate
             }
             catch (UriFormatException e)
             {
-                FailOnProject("raised the following exception: " + e.Message + " Please enter the correct server URI.");
+                FailOnProject(
+                    $"Unable to set server URI to '{serverUriString}'. Please check the configuration. Exception: '{e.Message}'.");
                 return false;
             }
 
@@ -204,16 +205,16 @@ namespace SonarSource.TfsAnnotate
             return Convert.ToInt64(timespan.TotalMilliseconds);
         }
 
-        private static void FailOnFile(string reason)
+        private static void FailOnFile(string fileName, string reason)
         {
             Console.Out.WriteLine("AnnotationFailedOnFile");
-            Console.Error.WriteLine("Unable to annotate the following file which " + reason);
+            Console.Error.WriteLine($"Unable to annotate the file {fileName}: {reason}");
         }
 
-        private static void FailOnProject(string reason)
+        private static void FailOnProject(string message)
         {
             Console.Out.WriteLine("AnnotationFailedOnProject");
-            Console.Error.WriteLine("Unable to annotate the project which " + reason);
+            Console.Error.WriteLine(message);
         }
     }
 }
