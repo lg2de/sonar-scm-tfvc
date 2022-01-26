@@ -30,3 +30,5 @@ test: off
 artifacts:
 - path: sonar-scm-tfvc-plugin/target/*.jar
   name: plugin
+- path: SonarTfsAnnotate/bin/Release/SonarTfsAnnotate.exe
+  name: proxy
