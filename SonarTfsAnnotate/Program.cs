@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Services.Common;
 
 namespace SonarSource.TfsAnnotate
 {
-    internal class Program
+    internal static class Program
     {
         private static readonly DateTime Epoch = new DateTime(1970, 1, 1);
         private static Uri serverUri;
@@ -33,7 +33,7 @@ namespace SonarSource.TfsAnnotate
                     return 1;
                 }
 
-                Console.WriteLine("Enter your credentials");
+                Console.WriteLine("Enter your credentials - username, password, PAT (separate rows):");
                 Console.Out.Flush();
                 string username = Console.ReadLine();
                 string password = Console.ReadLine();
@@ -54,7 +54,7 @@ namespace SonarSource.TfsAnnotate
                     credentials = new VssCredentials(true);
                 }
 
-                Console.WriteLine("Enter the Collection URI");
+                Console.WriteLine("Enter the Collection URI:");
                 Console.Out.Flush();
                 string serverUriString = Console.ReadLine();
 
@@ -77,12 +77,17 @@ namespace SonarSource.TfsAnnotate
                         }
                     }
 
-                    Console.Out.WriteLine("Enter the paths to annotate");
+                    Console.Out.WriteLine("Enter the paths to annotate:");
                     Console.Out.Flush();
 
-                    string path;
-                    while ((path = Console.ReadLine()) != null)
+                    while (true)
                     {
+                        var path = Console.ReadLine();
+                        if (string.IsNullOrWhiteSpace(path))
+                        {
+                            break;
+                        }
+
                         try
                         {
                             Console.Out.Flush();
