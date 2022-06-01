@@ -67,6 +67,7 @@
           </includes>
           <excludes>
             <exclude>SonarTfsAnnotate/*FoundationService*</exclude>
+            <exclude>SonarTfsAnnotate/StringExtensions*</exclude>
             <exclude>SonarTfsAnnotate.Tests/**</exclude>
             <exclude>**/obj/**</exclude>
             <exclude>**/bin/**</exclude>
