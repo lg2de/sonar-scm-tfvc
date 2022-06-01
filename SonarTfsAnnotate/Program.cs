@@ -43,10 +43,12 @@ namespace SonarSource.TfsAnnotate
 
                 if (!string.IsNullOrEmpty(pat))
                 {
+                    Console.WriteLine($"Connecting using PAT: {pat.Mask()}...");
                     credentials = new VssCredentials(new VssBasicCredential(new NetworkCredential("", pat)));
                 }
                 else if (!string.IsNullOrEmpty(username) || !string.IsNullOrEmpty(password))
                 {
+                    Console.WriteLine($"Connecting using user/password: {username}/{password.Mask()}...");
                     credentials = new VssCredentials(new WindowsCredential(new NetworkCredential(username, password)));
                 }
                 else

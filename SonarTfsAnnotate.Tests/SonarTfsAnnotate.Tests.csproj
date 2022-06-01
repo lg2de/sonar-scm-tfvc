@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="AccountCacheTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StringExtensionsTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SonarTfsAnnotate\SonarTfsAnnotate.csproj">
