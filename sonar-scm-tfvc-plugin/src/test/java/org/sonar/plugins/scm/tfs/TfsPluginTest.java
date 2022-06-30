@@ -8,6 +8,10 @@ package org.sonar.plugins.scm.tfs;
 
 import org.junit.Test;
 import org.sonar.api.Plugin.Context;
+import org.sonar.api.SonarQubeSide;
+import org.sonar.api.SonarRuntime;
+import org.sonar.api.internal.SonarRuntimeImpl;
+import org.sonar.api.utils.Version;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -15,9 +19,10 @@ public class TfsPluginTest {
 
   @Test
   public void getExtensions() {
-    Context cntx = new Context(null);
-    new TfsPlugin().define(cntx);
-    assertThat(cntx.getExtensions()).hasSize(3 + TfsConfiguration.getProperties().size());
+    SonarRuntime runtime = SonarRuntimeImpl.forSonarQube(Version.create(7, 4), SonarQubeSide.SCANNER);
+    Context context = new Context(runtime);
+    new TfsPlugin().define(context);
+    assertThat(context.getExtensions()).hasSize(3 + TfsConfiguration.getProperties().size());
   }
 
 }
