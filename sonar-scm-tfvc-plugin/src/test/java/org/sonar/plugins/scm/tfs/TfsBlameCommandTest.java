@@ -53,7 +53,7 @@ public class TfsBlameCommandTest {
     getRootLogger().detachAppender(appender);
   }
 
-  @Test
+  @Test(timeout = 1000)
   public void init_missingCollectionUri_noExceptionThrown() {
     File executable = new File("src/test/resources/fake.bat");
     when(conf.collectionUri()).thenReturn("");
@@ -65,7 +65,7 @@ public class TfsBlameCommandTest {
         "SCM-TFVC: Missing configuration for CollectionUri. The project may not receive blame information.");
   }
 
-  @Test
+  @Test(timeout = 1000)
   public void blame_sampleData_processedWithoutError() throws IOException {
     File executable = new File("src/test/resources/fake.bat");
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);
@@ -87,7 +87,7 @@ public class TfsBlameCommandTest {
     assertThat(appender.getErrorEvents()).isEmpty();
   }
 
-  @Test
+  @Test(timeout = 1000)
   public void blame_lastLineEmpty_annotated() {
     File executable = new File("src/test/resources/fake.bat");
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);
@@ -112,7 +112,7 @@ public class TfsBlameCommandTest {
     assertThat(appender.getErrorEvents()).isEmpty();
   }
 
-  @Test
+  @Test(timeout = 1000)
   public void blame_invalidOutput_errorLogged() {
     File executable = new File("src/test/resources/fake.bat");
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);
@@ -131,7 +131,7 @@ public class TfsBlameCommandTest {
     verify(output, Mockito.never()).blameResult(Mockito.any(InputFile.class), Mockito.anyListOf(BlameLine.class));
   }
 
-  @Test
+  @Test(timeout = 1000)
   public void blame_exceptionWhileFileProcessing_errorLogged() {
     File executable = new File("src/test/resources/file_level_error.bat");
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);
@@ -157,7 +157,7 @@ public class TfsBlameCommandTest {
             new BlameLine().date(new Date(1430736200000L)).revision("26275").author("SND\\DinSoft_cp")));
   }
 
-  @Test
+  @Test(timeout = 1000)
   public void blame_exceptionWhileProjectProcessing_errorLogged() {
     File executable = new File("src/test/resources/project_level_error.bat");
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);
@@ -175,7 +175,7 @@ public class TfsBlameCommandTest {
     verify(output, Mockito.never()).blameResult(Mockito.any(InputFile.class), Mockito.anyListOf(BlameLine.class));
   }
 
-  @Test
+  @Test(timeout = 1000)
   public void blame_exceptionInStream_errorLogged() {
     File executable = new File("src/test/resources/error_stream.bat");
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);
