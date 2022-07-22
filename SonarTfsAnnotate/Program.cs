@@ -33,7 +33,7 @@ namespace SonarSource.TfsAnnotate
                     return 1;
                 }
 
-                Console.WriteLine("Enter your credentials - username, password, PAT (separate rows):");
+                Console.WriteLine("Enter your credentials - username, password, PAT (three separate rows):");
                 Console.Out.Flush();
                 string username = Console.ReadLine();
                 string password = Console.ReadLine();
@@ -53,7 +53,8 @@ namespace SonarSource.TfsAnnotate
                 }
                 else
                 {
-                    credentials = new VssCredentials(true);
+                    Console.WriteLine("Connecting using default credentials...");
+                    credentials = new VssCredentials(useDefaultCredentials: true);
                 }
 
                 Console.WriteLine("Enter the Collection URI:");

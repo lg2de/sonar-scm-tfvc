@@ -85,11 +85,17 @@ public class TfsBlameCommand extends BlameCommand {
       stdin.write(conf.pat() + "\r\n");
       stdin.flush();
 
+      // expecting status for the connection
+      blameOutput = stdout.readLine();
+      logOutput(blameOutput);
+
+      // expecting next instruction
       blameOutput = stdout.readLine();
       logOutput(blameOutput);
       stdin.write(conf.collectionUri() + "\r\n");
       stdin.flush();
 
+      // expecting next instruction or maybe error message
       blameOutput = stdout.readLine();
       if (blameOutput.equals("AnnotationFailedOnProject")) {
         logError(stderr.readLine());
