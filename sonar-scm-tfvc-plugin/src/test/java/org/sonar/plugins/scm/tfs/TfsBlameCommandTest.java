@@ -10,6 +10,7 @@ import ch.qos.logback.classic.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import org.junit.After;
 import org.junit.Before;
@@ -66,7 +67,7 @@ public class TfsBlameCommandTest {
   }
 
   @Test(timeout = 1000)
-  public void blame_sampleData_processedWithoutError() throws IOException {
+  public void blame_sampleData_processedWithoutError() {
     File executable = new File("src/test/resources/fake.bat");
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);
     File file = new File("src/test/resources/ok.txt");
@@ -74,7 +75,7 @@ public class TfsBlameCommandTest {
         .setModuleBaseDir(file.toPath().getParent())
         .build();
     BlameInput input = mock(BlameInput.class);
-    when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
+    when(input.filesToBlame()).thenReturn(Collections.<InputFile>singletonList(inputFile));
     BlameOutput output = mock(BlameOutput.class);
 
     command.blame(input, output);
@@ -97,7 +98,7 @@ public class TfsBlameCommandTest {
         .setLines(3)
         .build();
     BlameInput input = mock(BlameInput.class);
-    when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
+    when(input.filesToBlame()).thenReturn(Collections.<InputFile>singletonList(inputFile));
     BlameOutput output = mock(BlameOutput.class);
 
     command.blame(input, output);
@@ -121,7 +122,7 @@ public class TfsBlameCommandTest {
         .setModuleBaseDir(file.toPath().getParent())
         .build();
     BlameInput input = mock(BlameInput.class);
-    when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
+    when(input.filesToBlame()).thenReturn(Collections.<InputFile>singletonList(inputFile));
     BlameOutput output = mock(BlameOutput.class);
 
     command.blame(input, output);
@@ -166,7 +167,7 @@ public class TfsBlameCommandTest {
         .setModuleBaseDir(file.toPath().getParent())
         .build();
     BlameInput input = mock(BlameInput.class);
-    when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
+    when(input.filesToBlame()).thenReturn(Collections.<InputFile>singletonList(inputFile));
     BlameOutput output = mock(BlameOutput.class);
 
     command.blame(input, output);
