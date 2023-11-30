@@ -166,9 +166,14 @@ public class TfsBlameCommand extends BlameCommand {
     } finally {
       if (process != null) {
         captureErrorStream(process);
-        Closeables.closeQuietly(process.getInputStream());
-        Closeables.closeQuietly(process.getOutputStream());
-        Closeables.closeQuietly(process.getErrorStream());
+        try {
+          process.getInputStream().close();
+          process.getOutputStream().close();
+          process.getErrorStream().close();
+        }
+        catch (IOException e) {
+          // just ignore
+        }
         process.destroy();
       }
     }
