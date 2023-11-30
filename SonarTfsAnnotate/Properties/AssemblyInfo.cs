@@ -17,7 +17,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("SonarSource")]
 [assembly: AssemblyProduct("SonarTfsAnnotate")]
-[assembly: AssemblyCopyright("Copyright © SonarSource 2014-2016, Lukas Grützmacher 2019-2020")]
+[assembly: AssemblyCopyright("Copyright ï¿½ SonarSource 2014-2016, Lukas GrÃ¼tzmacher 2019-2023")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -29,7 +29,7 @@ using System.Runtime.InteropServices;
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("ef935e23-3dbf-401d-a5c3-62b3ec660a46")]
 
-[assembly: AssemblyVersion("2.4.0.0")]
+[assembly: AssemblyVersion("2.5.0.0")]
 
 [assembly: InternalsVisibleTo("SonarTfsAnnotate.Tests")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
