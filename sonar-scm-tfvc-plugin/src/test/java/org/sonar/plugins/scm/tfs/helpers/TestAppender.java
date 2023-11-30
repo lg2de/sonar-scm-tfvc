@@ -14,9 +14,9 @@ import java.util.List;
 
 public class TestAppender extends ConsoleAppender<ILoggingEvent> {
 
-  private List<String> errorEvents = new ArrayList<>();
+  private final List<String> errorEvents = new ArrayList<>();
 
-  private List<String> warningEvents = new ArrayList<>();
+  private final List<String> warningEvents = new ArrayList<>();
 
   @Override
   public void doAppend(ILoggingEvent event) {
