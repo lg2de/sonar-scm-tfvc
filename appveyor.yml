@@ -15,8 +15,6 @@ install:
 
 environment:
   MSBUILD_PATH: C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe
-  SONAR_CLOUD_TOKEN:
-    secure: ivjnTQqcI2yOVzUePmNsvDZvxgzHkoNVAeXWcGl1/m4N9sbK02rHH/H1omcWzH36
 
 before_build:
   - nuget restore
@@ -25,7 +23,7 @@ build_script:
   - mvn help:effective-pom
   - mvn clean install --batch-mode -DbuildVersion=%APPVEYOR_BUILD_VERSION%
   - ps: if ($env:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH) { $env:APPVEYOR_REPO_BRANCH = $env:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH; }
-  - mvn sonar:sonar -Dsonar.projectKey=lg2de_sonar-scm-tfvc -Dsonar.organization=lg2de -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=%SONAR_CLOUD_TOKEN% -Dsonar.branch.name=%APPVEYOR_REPO_BRANCH%
+  - mvn sonar:sonar -Dsonar.projectKey=lg2de_sonar-scm-tfvc -Dsonar.organization=lg2de -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=%SONAR_TOKEN% -Dsonar.branch.name=%APPVEYOR_REPO_BRANCH%
 
 test: off
 
