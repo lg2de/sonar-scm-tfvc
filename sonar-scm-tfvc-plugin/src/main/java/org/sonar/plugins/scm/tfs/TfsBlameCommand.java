@@ -8,15 +8,16 @@ package org.sonar.plugins.scm.tfs;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.sonar.api.batch.fs.InputFile;
+import org.sonar.api.batch.scm.BlameCommand;
+import org.sonar.api.batch.scm.BlameLine;
+import org.sonar.api.utils.TempFolder;
+
+import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -24,12 +25,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.sonar.api.batch.fs.InputFile;
-import org.sonar.api.batch.scm.BlameCommand;
-import org.sonar.api.batch.scm.BlameLine;
-import org.sonar.api.utils.TempFolder;
 
 public class TfsBlameCommand extends BlameCommand {
 
@@ -41,6 +36,7 @@ public class TfsBlameCommand extends BlameCommand {
   private final TfsConfiguration conf;
   private final File executable;
 
+  @SuppressWarnings("unused")
   public TfsBlameCommand(TfsConfiguration conf, TempFolder temp) {
     this(conf, extractExecutable(temp));
   }
@@ -77,14 +73,14 @@ public class TfsBlameCommand extends BlameCommand {
       String blameOutput = stdout.readLine();
       for (int i=0; i<10; i++) {
         logOutput(blameOutput);
-        if (blameOutput != null && !blameOutput.isEmpty()) {
+        if (!blameOutput.isEmpty()) {
           break;
         }
 
         Thread.sleep(100);
       }
 
-      if (blameOutput == null || blameOutput.isEmpty()) {
+      if (blameOutput.isEmpty()) {
         logError("missing initial output from annotator.");
         return;
       }
@@ -131,7 +127,7 @@ public class TfsBlameCommand extends BlameCommand {
           continue;
         }
 
-        if (linesAsString == null||linesAsString.equals("AnnotationFailedOnProject")) {
+        if (linesAsString.equals("AnnotationFailedOnProject")) {
           logError(stderr.readLine());
           break;
         }
