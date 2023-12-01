@@ -17,9 +17,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
@@ -52,6 +54,13 @@ public class TfsBlameCommand extends BlameCommand {
 
     this.conf = conf;
     this.executable = executable;
+  }
+
+  @SuppressWarnings({"deprecation", "squid:S1113"})
+  @Override
+  protected void finalize() throws Throwable {
+    super.finalize();
+    logDebug("blaming completed");
   }
 
   @Override
@@ -231,7 +240,8 @@ public class TfsBlameCommand extends BlameCommand {
   private static File extractExecutable(TempFolder temp) {
     File executable = temp.newFile("SonarTfsAnnotate", ".exe");
     try {
-      Files.write(Resources.toByteArray(TfsBlameCommand.class.getResource("/SonarTfsAnnotate.exe")), executable);
+      URL resource = TfsBlameCommand.class.getResource("/SonarTfsAnnotate.exe");
+      Files.write(Resources.toByteArray(Objects.requireNonNull(resource)), executable);
     } catch (IOException e) {
       throw new IllegalStateException("Unable to extract SonarTfsAnnotate.exe", e);
     }
