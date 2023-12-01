@@ -33,22 +33,22 @@ public class TfsBlameCommand extends BlameCommand {
   private static final Logger LOG = LoggerFactory.getLogger(TfsBlameCommand.class);
   private static final Pattern LINE_PATTERN = Pattern.compile("([^\t]++)\t([^\t]++)\t([^\t]++)");
 
-  private final TfsConfiguration conf;
+  private final TfsConfiguration configuration;
   private final File executable;
 
-  @SuppressWarnings("unused")
+  @SuppressWarnings("unused") // used implicitly
   public TfsBlameCommand(TfsConfiguration conf, TempFolder temp) {
     this(conf, extractExecutable(temp));
   }
 
   @VisibleForTesting
-  public TfsBlameCommand(TfsConfiguration conf, File executable) {
+  public TfsBlameCommand(TfsConfiguration configuration, File executable) {
     logDebug("started blaming with executable %s", executable.getAbsolutePath());
-    if (conf.collectionUri().isEmpty()) {
+    if (configuration.collectionUri().isEmpty()) {
       logWarning("Missing configuration for CollectionUri. The project may not receive blame information.");
     }
 
-    this.conf = conf;
+    this.configuration = configuration;
     this.executable = executable;
   }
 
@@ -71,7 +71,7 @@ public class TfsBlameCommand extends BlameCommand {
       BufferedReader stderr = new BufferedReader(new InputStreamReader(process.getErrorStream(), StandardCharsets.UTF_8));
 
       String blameOutput = stdout.readLine();
-      for (int i=0; i<10; i++) {
+      for (int waitCounter=0; waitCounter<10; waitCounter++) {
         logOutput(blameOutput);
         if (!blameOutput.isEmpty()) {
           break;
@@ -85,9 +85,9 @@ public class TfsBlameCommand extends BlameCommand {
         return;
       }
 
-      stdin.write(conf.username() + "\r\n");
-      stdin.write(conf.password() + "\r\n");
-      stdin.write(conf.pat() + "\r\n");
+      stdin.write(configuration.username() + "\r\n");
+      stdin.write(configuration.password() + "\r\n");
+      stdin.write(configuration.pat() + "\r\n");
       stdin.flush();
 
       // expecting status for the connection
@@ -97,7 +97,7 @@ public class TfsBlameCommand extends BlameCommand {
       // expecting next instruction
       blameOutput = stdout.readLine();
       logOutput(blameOutput);
-      stdin.write(conf.collectionUri() + "\r\n");
+      stdin.write(configuration.collectionUri() + "\r\n");
       stdin.flush();
 
       // expecting next instruction or maybe error message
