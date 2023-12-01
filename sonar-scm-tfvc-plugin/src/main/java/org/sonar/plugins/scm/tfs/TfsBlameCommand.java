@@ -19,6 +19,7 @@ import org.sonar.api.utils.TempFolder;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
@@ -66,9 +67,10 @@ public class TfsBlameCommand extends BlameCommand {
       logDebug("Executing the TFVC annotate command: %s", executable.getAbsolutePath());
       ProcessBuilder processBuilder = new ProcessBuilder(executable.getAbsolutePath());
       process = processBuilder.start();
-      OutputStreamWriter stdin = new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8);
-      BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
-      BufferedReader stderr = new BufferedReader(new InputStreamReader(process.getErrorStream(), StandardCharsets.UTF_8));
+      Charset fileCharset = StandardCharsets.UTF_8;
+      OutputStreamWriter stdin = new OutputStreamWriter(process.getOutputStream(), fileCharset);
+      BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream(), fileCharset));
+      BufferedReader stderr = new BufferedReader(new InputStreamReader(process.getErrorStream(), fileCharset));
 
       String blameOutput = stdout.readLine();
       for (int waitCounter=0; waitCounter<10; waitCounter++) {
