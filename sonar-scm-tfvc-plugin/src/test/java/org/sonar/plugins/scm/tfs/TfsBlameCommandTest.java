@@ -67,6 +67,18 @@ public class TfsBlameCommandTest {
   }
 
   @Test(timeout = 1000)
+  public void finalize_shutdownReports() throws Throwable {
+    File executable = new File("src/test/resources/fake.bat");
+    TfsBlameCommand command = new TfsBlameCommand(conf, executable);
+
+    //noinspection FinalizeCalledExplicitly
+    command.finalize();
+
+    assertThat(command).isNotNull();
+    assertThat(appender.getDebugEvents()).contains("SCM-TFVC: blaming completed");
+  }
+
+  @Test(timeout = 1000)
   public void blame_sampleData_processedWithoutError() {
     File executable = new File("src/test/resources/fake.bat");
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);

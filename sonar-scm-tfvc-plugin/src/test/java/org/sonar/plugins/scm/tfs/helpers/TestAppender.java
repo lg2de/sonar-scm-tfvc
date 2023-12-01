@@ -15,8 +15,8 @@ import java.util.List;
 public class TestAppender extends ConsoleAppender<ILoggingEvent> {
 
   private final List<String> errorEvents = new ArrayList<>();
-
   private final List<String> warningEvents = new ArrayList<>();
+  private final List<String> debugEvents = new ArrayList<>();
 
   @Override
   public void doAppend(ILoggingEvent event) {
@@ -25,6 +25,9 @@ public class TestAppender extends ConsoleAppender<ILoggingEvent> {
     }
     if (event.getLevel() == Level.WARN) {
       warningEvents.add(event.getFormattedMessage());
+    }
+    if (event.getLevel() == Level.DEBUG) {
+      debugEvents.add(event.getFormattedMessage());
     }
   }
 
@@ -36,4 +39,7 @@ public class TestAppender extends ConsoleAppender<ILoggingEvent> {
     return warningEvents;
   }
 
+  public List<String> getDebugEvents() {
+    return debugEvents;
+  }
 }
