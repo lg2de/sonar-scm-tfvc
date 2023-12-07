@@ -8,26 +8,24 @@ package org.sonar.plugins.scm.tfs;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.scm.BlameCommand;
 import org.sonar.api.batch.scm.BlameLine;
 import org.sonar.api.utils.TempFolder;
+
+import java.io.*;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TfsBlameCommand extends BlameCommand {
 
@@ -36,22 +34,30 @@ public class TfsBlameCommand extends BlameCommand {
   private static final Logger LOG = LoggerFactory.getLogger(TfsBlameCommand.class);
   private static final Pattern LINE_PATTERN = Pattern.compile("([^\t]++)\t([^\t]++)\t([^\t]++)");
 
-  private final TfsConfiguration conf;
+  private final TfsConfiguration configuration;
   private final File executable;
 
+  @SuppressWarnings("unused") // used implicitly
   public TfsBlameCommand(TfsConfiguration conf, TempFolder temp) {
     this(conf, extractExecutable(temp));
   }
 
   @VisibleForTesting
-  public TfsBlameCommand(TfsConfiguration conf, File executable) {
+  public TfsBlameCommand(TfsConfiguration configuration, File executable) {
     logDebug("started blaming with executable %s", executable.getAbsolutePath());
-    if (conf.collectionUri().isEmpty()) {
+    if (configuration.collectionUri().isEmpty()) {
       logWarning("Missing configuration for CollectionUri. The project may not receive blame information.");
     }
 
-    this.conf = conf;
+    this.configuration = configuration;
     this.executable = executable;
+  }
+
+  @SuppressWarnings({"deprecation", "squid:S1113"})
+  @Override
+  protected void finalize() throws Throwable {
+    super.finalize();
+    logDebug("blaming completed");
   }
 
   @Override
@@ -61,35 +67,42 @@ public class TfsBlameCommand extends BlameCommand {
       logDebug("Executing the TFVC annotate command: %s", executable.getAbsolutePath());
       ProcessBuilder processBuilder = new ProcessBuilder(executable.getAbsolutePath());
       process = processBuilder.start();
-      OutputStreamWriter stdin = new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8);
-      BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
-      BufferedReader stderr = new BufferedReader(new InputStreamReader(process.getErrorStream(), StandardCharsets.UTF_8));
+      Charset fileCharset = StandardCharsets.UTF_8;
+      OutputStreamWriter stdin = new OutputStreamWriter(process.getOutputStream(), fileCharset);
+      BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream(), fileCharset));
+      BufferedReader stderr = new BufferedReader(new InputStreamReader(process.getErrorStream(), fileCharset));
 
       String blameOutput = stdout.readLine();
-      for (int i=0; i<10; i++) {
+      for (int waitCounter=0; waitCounter<10; waitCounter++) {
         logOutput(blameOutput);
-        if (blameOutput != null && !blameOutput.isEmpty()) {
+        if (!blameOutput.isEmpty()) {
           break;
         }
 
         Thread.sleep(100);
       }
 
-      if (blameOutput == null || blameOutput.isEmpty()) {
+      if (blameOutput.isEmpty()) {
         logError("missing initial output from annotator.");
         return;
       }
 
-      stdin.write(conf.username() + "\r\n");
-      stdin.write(conf.password() + "\r\n");
-      stdin.write(conf.pat() + "\r\n");
+      stdin.write(configuration.username() + "\r\n");
+      stdin.write(configuration.password() + "\r\n");
+      stdin.write(configuration.pat() + "\r\n");
       stdin.flush();
 
+      // expecting status for the connection
       blameOutput = stdout.readLine();
       logOutput(blameOutput);
-      stdin.write(conf.collectionUri() + "\r\n");
+
+      // expecting next instruction
+      blameOutput = stdout.readLine();
+      logOutput(blameOutput);
+      stdin.write(configuration.collectionUri() + "\r\n");
       stdin.flush();
 
+      // expecting next instruction or maybe error message
       blameOutput = stdout.readLine();
       if (blameOutput.equals("AnnotationFailedOnProject")) {
         logError(stderr.readLine());
@@ -116,7 +129,7 @@ public class TfsBlameCommand extends BlameCommand {
           continue;
         }
 
-        if (linesAsString == null||linesAsString.equals("AnnotationFailedOnProject")) {
+        if (linesAsString.equals("AnnotationFailedOnProject")) {
           logError(stderr.readLine());
           break;
         }
@@ -225,7 +238,8 @@ public class TfsBlameCommand extends BlameCommand {
   private static File extractExecutable(TempFolder temp) {
     File executable = temp.newFile("SonarTfsAnnotate", ".exe");
     try {
-      Files.write(Resources.toByteArray(TfsBlameCommand.class.getResource("/SonarTfsAnnotate.exe")), executable);
+      URL resource = TfsBlameCommand.class.getResource("/SonarTfsAnnotate.exe");
+      Files.write(Resources.toByteArray(Objects.requireNonNull(resource)), executable);
     } catch (IOException e) {
       throw new IllegalStateException("Unable to extract SonarTfsAnnotate.exe", e);
     }

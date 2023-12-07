@@ -8,7 +8,7 @@
   </parent>
   <groupId>org.sonarsource.tfvc</groupId>
   <artifactId>sonar-scm-tfvc</artifactId>
-  <version>2.4.0</version>
+  <version>2.5.0</version>
   <packaging>pom</packaging>
   <name>SonarQube :: SCM :: TFVC</name>
   <inceptionYear>2014</inceptionYear>
@@ -67,6 +67,7 @@
           </includes>
           <excludes>
             <exclude>SonarTfsAnnotate/*FoundationService*</exclude>
+            <exclude>SonarTfsAnnotate/StringExtensions*</exclude>
             <exclude>SonarTfsAnnotate.Tests/**</exclude>
             <exclude>**/obj/**</exclude>
             <exclude>**/bin/**</exclude>
