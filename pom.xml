@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.sonarsource.parent</groupId>
     <artifactId>parent</artifactId>
-    <version>31</version>
+    <version>80.0.0.2205</version>
   </parent>
   <groupId>org.sonarsource.tfvc</groupId>
   <artifactId>sonar-scm-tfvc</artifactId>
@@ -52,9 +52,10 @@
     <plugins>
       <!-- check copyright/license headers -->
       <plugin>
+        <groupId>com.mycila</groupId>
         <inherited>false</inherited>
-        <groupId>com.mycila.maven-license-plugin</groupId>
-        <artifactId>maven-license-plugin</artifactId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>4.6</version>
         <configuration>
           <header>${project.basedir}/copyright.txt</header>
           <failIfMissing>true</failIfMissing>
@@ -76,7 +77,6 @@
             <java>SLASHSTAR_STYLE</java>
             <cs>SLASHSTAR_STYLE</cs>
           </mapping>
-          <skip>${skipSanityChecks}</skip>
         </configuration>
         <executions>
           <execution>
