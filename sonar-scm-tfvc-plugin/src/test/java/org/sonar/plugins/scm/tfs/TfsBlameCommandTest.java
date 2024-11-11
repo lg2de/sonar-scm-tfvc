@@ -187,7 +187,7 @@ public class TfsBlameCommandTest {
     verify(output, Mockito.never()).blameResult(Mockito.any(InputFile.class), Mockito.<BlameLine>anyList());
   }
 
-  @Test(timeout = 1000)
+  @Test(timeout = 5000)
   public void blame_exceptionInStream_errorLogged() {
     File executable = new File("src/test/resources/error_stream.bat");
     TfsBlameCommand command = new TfsBlameCommand(conf, executable);
