@@ -32,7 +32,7 @@
             </configuration>
           </execution>
           <execution>
-            <id>msbuild-build</id>
+            <id>msbuild-build-release</id>
             <phase>compile</phase>
             <goals>
               <goal>exec</goal>
@@ -43,6 +43,36 @@
               <arguments>
                 <argument>/t:Build</argument>
                 <argument>/property:Configuration=Release</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>msbuild-build-debug</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${env.MSBUILD_PATH}</executable>
+              <workingDirectory>../SonarTfsAnnotate.Tests</workingDirectory>
+              <arguments>
+                <argument>/t:Build</argument>
+                <argument>/property:Configuration=Debug</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>msbuild-test</id>
+            <phase>test</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${env.MSTEST_PATH}</executable>
+              <workingDirectory>../SonarTfsAnnotate.Tests</workingDirectory>
+              <arguments>
+                <argument>bin\Debug\SonarTfsAnnotate.Tests.dll</argument>
+                <argument>--Settings:SonarTfsAnnotate.runsettings</argument>
               </arguments>
             </configuration>
           </execution>
