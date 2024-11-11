@@ -139,16 +139,6 @@
               <propertyName>surefireArgLine</propertyName>
             </configuration>
           </execution>
-          <!-- set arg line property for failsafe -->
-          <execution>
-            <id>prepare-agent-integration</id>
-            <goals>
-              <goal>prepare-agent-integration</goal>
-            </goals>
-            <configuration>
-              <propertyName>failsafeArgLine</propertyName>
-            </configuration>
-          </execution>
         </executions>
       </plugin>
       <plugin>
@@ -159,24 +149,6 @@
           <!-- Sets the VM argument line used when unit tests are run. -->
           <argLine>${surefireArgLine}</argLine>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <version>2.19.1</version>
-        <executions>
-          <execution>
-            <id>integration-test</id>
-            <goals>
-              <goal>integration-test</goal>
-              <goal>verify</goal>
-            </goals>
-            <configuration>
-              <!-- Sets the VM argument line used when integration tests are run. -->
-              <argLine>${failsafeArgLine}</argLine>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
