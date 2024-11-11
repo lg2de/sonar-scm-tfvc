@@ -8,7 +8,6 @@ package org.sonar.plugins.scm.tfs;
 
 import ch.qos.logback.classic.Logger;
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -141,7 +140,7 @@ public class TfsBlameCommandTest {
 
     assertThat(appender.getErrorEvents()).containsExactly(
         "SCM-TFVC: IllegalStateException thrown in the TFVC annotate command: Invalid output from the TFVC annotate command: \"hello world!\" on file: " + inputFile.absolutePath() + " at line 1");
-    verify(output, Mockito.never()).blameResult(Mockito.any(InputFile.class), Mockito.anyListOf(BlameLine.class));
+    verify(output, Mockito.never()).blameResult(Mockito.any(InputFile.class), Mockito.<BlameLine>anyList());
   }
 
   @Test(timeout = 1000)
@@ -185,7 +184,7 @@ public class TfsBlameCommandTest {
     command.blame(input, output);
 
     assertThat(appender.getErrorEvents()).containsExactly("SCM-TFVC: Exception on Annotating Project");
-    verify(output, Mockito.never()).blameResult(Mockito.any(InputFile.class), Mockito.anyListOf(BlameLine.class));
+    verify(output, Mockito.never()).blameResult(Mockito.any(InputFile.class), Mockito.<BlameLine>anyList());
   }
 
   @Test(timeout = 1000)
