@@ -125,6 +125,7 @@
         <extensions>true</extensions>
       </plugin>
       <plugin>
+        <!-- Java Code Coverage Library -->
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
         <version>0.8.12</version>
