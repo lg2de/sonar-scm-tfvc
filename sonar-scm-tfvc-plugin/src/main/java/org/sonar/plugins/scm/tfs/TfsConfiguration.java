@@ -38,7 +38,7 @@ public class TfsConfiguration {
     return ImmutableList.of(
       PropertyDefinition.builder(PAT_PROPERTY_KEY)
         .name("PersonalAccessToken")
-        .description("All scopes PAT when connecting to Visual Studio Team Services")
+        .description("All scopes PAT when connecting to Azure DevOps Services")
         .type(PropertyType.PASSWORD)
         .onQualifiers(Qualifiers.PROJECT)
         .category(CoreProperties.CATEGORY_SCM)
@@ -47,7 +47,7 @@ public class TfsConfiguration {
         .build(),
       PropertyDefinition.builder(USERNAME_PROPERTY_KEY)
         .name("Username")
-        .description("Username when connecting to on-premises Team Foundation Server")
+        .description("Username when connecting to on-premises Azure DevOps Server")
         .type(PropertyType.STRING)
         .onQualifiers(Qualifiers.PROJECT)
         .category(CoreProperties.CATEGORY_SCM)
@@ -56,7 +56,7 @@ public class TfsConfiguration {
         .build(),
       PropertyDefinition.builder(PASSWORD_PROPERTY_KEY)
         .name("Password")
-        .description("Password when connecting to on-premises Team Foundation Server")
+        .description("Password when connecting to on-premises Azure DevOps Server")
         .type(PropertyType.PASSWORD)
         .onQualifiers(Qualifiers.PROJECT)
         .category(CoreProperties.CATEGORY_SCM)
@@ -65,7 +65,7 @@ public class TfsConfiguration {
         .build(),
       PropertyDefinition.builder(COLLECTIONURI_PROPERTY_KEY)
         .name("CollectionURI")
-        .description("Example: - https://[account].visualstudio.com/DefaultCollection or http://ServerName:8080/tfs/DefaultCollection")
+        .description("Example: - https://dev.azure.com/SampleProject or https://DevOps.domain.local/tfs/SampleCollection")
         .type(PropertyType.STRING)
         .onQualifiers(Qualifiers.PROJECT)
         .category(CoreProperties.CATEGORY_SCM)

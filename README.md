@@ -3,18 +3,28 @@
 
 ## SonarQube SCM TFVC plugin
 ### Description
-Implements SCM dependent features of SonarQube for [Microsoft Team Foundation Server](http://en.wikipedia.org/wiki/Team_Foundation_Server)'s own Version Control (all versions).
+Implements SCM dependent features of SonarQube for [Microsoft Azure DevOps Server/Services](https://en.wikipedia.org/wiki/Azure_DevOps_Server)'s own Version Control (all versions).
 It requires analysis to be executed from Windows machines.
-Additionally, for working with Team Foundation Server 2015 the user also needs to specify the Team Foundation Server Collection URI.
 
 ### Usage
-Auto-detection of the SCM provider will work if there is a "$tf" folder in the project root directory. Otherwise you can force it by setting the "sonar.scm.provider" property to "tfvc".
-For interacting with Team Foundation Server 2015 users need to enter the collection URI corresponding to the TFVC collection of the project. This property can be set and edited either through sonar-runner properties or the SonarQube Server.
-Optionally, you can configure additional properties:
+Auto-detection of the SCM provider will work if there is a "$tf" folder in the project root directory.
+Otherwise, you can force it by setting the "sonar.scm.provider" property to "tfvc".
 
-| Key | Description | Required | Default value |
-| --- | --- | --- | --- |
-| sonar.tfvc.collectionuri | URI corresponding to the TFVC collection of the project | Mandatory for working with Team Foundation Server 2015 | None |
-| sonar.tfvc.username | Username to be used for TFVC authentication. | Optional for Windows authentication or if already cached. | None |
-| sonar.tfvc.password.secured | Password to be used for TFVC authentication. | Optional for Windows authentication or if already cached. | None |
-| sonar.tfvc.pat.secured | Personal Access Token (PAT) to be used for TFVC authentication. | Optional for Windows authentication. | None |
+For interacting with Azure DevOps Server or Services, users need to enter the collection URI corresponding to the TFVC collection of the project.
+This property can be set and edited either through sonar-runner properties or the SonarQube Server.
+
+The authentication is performed either using username and password,
+or with a Personal Access Token (PAT).
+
+These properties are available:
+
+| Key                         | Description                                                     | Required                                                    | Default value |
+|-----------------------------|-----------------------------------------------------------------|-------------------------------------------------------------|---------------|
+| sonar.tfvc.collectionuri    | URI corresponding to the TFVC collection of the project         | Mandatory for working with Azure DevOps Server or Services. | None          |
+| sonar.tfvc.username         | Username to be used for TFVC authentication.                    | Optional for Windows authentication or if already cached.   | None          |
+| sonar.tfvc.password.secured | Password to be used for TFVC authentication.                    | Optional for Windows authentication or if already cached.   | None          |
+| sonar.tfvc.pat.secured      | Personal Access Token (PAT) to be used for TFVC authentication. | Optional for Windows authentication.                        | None          |
+
+Due to changes in SonarQube starting version 9.1, secured parameters cannot be transferred from the server to the plugin.
+Therefore, the parameters `sonar.tfvc.pat.secured` (or `sonar.tfvc.password.secured`)
+must be specified as commandline parameter when running the analyzer.
