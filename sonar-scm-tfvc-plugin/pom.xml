@@ -43,9 +43,10 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
+      <!-- Logging framework -->
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>2.0.16</version>
+      <version>2.0.17</version>
     </dependency>
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
@@ -72,8 +73,8 @@
       <version>${sonar.buildVersion}</version>
       <scope>test</scope>
     </dependency>
-    <!-- mocking framework -->
     <dependency>
+      <!-- mocking framework -->
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
       <version>5.15.2</version>
