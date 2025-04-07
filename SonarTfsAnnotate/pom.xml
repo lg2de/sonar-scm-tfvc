@@ -79,10 +79,13 @@
         </executions>
       </plugin>
       <plugin>
+        <!-- create deployment zip -->
         <artifactId>maven-assembly-plugin</artifactId>
         <version>3.7.1</version>
         <configuration>
-          <descriptor>zip-assembly.xml</descriptor>
+          <descriptors>
+            <descriptor>zip-assembly.xml</descriptor>
+          </descriptors>
           <appendAssemblyId>false</appendAssemblyId>
         </configuration>
         <executions>
