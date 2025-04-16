@@ -17,7 +17,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("SonarSource")]
 [assembly: AssemblyProduct("SonarTfsAnnotate")]
-[assembly: AssemblyCopyright("Copyright � SonarSource 2014-2016, Lukas Grützmacher 2019-2023")]
+[assembly: AssemblyCopyright("Copyright (C) SonarSource 2014-2016, Lukas Grützmacher 2019-2025")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
