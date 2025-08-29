@@ -77,7 +77,7 @@
       <!-- mocking framework -->
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>5.18.0</version>
+      <version>5.19.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
