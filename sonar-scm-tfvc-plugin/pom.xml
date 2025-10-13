@@ -132,7 +132,7 @@
         <!-- Java Code Coverage Library -->
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.8.13</version>
+        <version>0.8.14</version>
         <executions>
           <!-- set arg line property for surefire -->
           <execution>
