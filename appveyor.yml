@@ -9,7 +9,7 @@ cache:
   - C:\Users\appveyor\.m2 -> **\pom.xml
 
 install:
-  - choco install microsoft-openjdk17
+  - choco install microsoft-openjdk21
   - set MAVEN_VERSION=3.9.5
   - choco install maven --version %MAVEN_VERSION%
   - refreshenv
