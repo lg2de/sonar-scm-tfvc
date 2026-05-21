@@ -73,7 +73,7 @@
               <executable>${env.MSTEST_PATH}</executable>
               <workingDirectory>../SonarTfsAnnotate.Tests</workingDirectory>
               <arguments>
-                <argument>bin\Debug\SonarTfsAnnotate.Tests.dll</argument>
+                <argument>bin\Debug\net472\SonarTfsAnnotate.Tests.dll</argument>
                 <argument>--Settings:SonarTfsAnnotate.runsettings</argument>
               </arguments>
             </configuration>
