@@ -6,7 +6,7 @@
  */
 
 using System;
-using FluentAssertions;
+using AwesomeAssertions;
 using NSubstitute;
 using SonarSource.TfsAnnotate;
 using Xunit;
