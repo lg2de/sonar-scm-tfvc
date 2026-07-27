@@ -71,7 +71,7 @@
         <groupId>com.mycila</groupId>
         <inherited>false</inherited>
         <artifactId>license-maven-plugin</artifactId>
-        <version>5.0.0</version>
+        <version>5.1.1</version>
         <configuration>
           <header>${project.basedir}/copyright.txt</header>
           <failIfMissing>true</failIfMissing>
