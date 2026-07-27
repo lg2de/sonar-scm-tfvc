@@ -53,6 +53,18 @@
     <module>sonar-scm-tfvc-plugin</module>
   </modules>
   <build>
+    <pluginManagement>
+      <plugins>
+        <!-- the "sonar" goal prefix is no longer registered in the org.codehaus.mojo group
+             metadata on Maven Central, so the scanner has to be declared here to keep
+             "mvn sonar:sonar" resolvable (and to let Dependabot track its updates) -->
+        <plugin>
+          <groupId>org.sonarsource.scanner.maven</groupId>
+          <artifactId>sonar-maven-plugin</artifactId>
+          <version>5.7.0.6970</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
     <plugins>
       <!-- check copyright/license headers -->
       <plugin>
